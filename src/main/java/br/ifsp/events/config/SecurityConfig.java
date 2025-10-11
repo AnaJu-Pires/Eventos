@@ -20,16 +20,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // --- LINHA MAIS IMPORTANTE PARA RESOLVER O ERRO 403 ---
-            // Desabilita a proteção CSRF, que não é necessária para nossa API REST
             .csrf(csrf -> csrf.disable())
             
-            // Define as regras de autorização para as requisições
             .authorizeHttpRequests(authorize -> authorize
-                // Permite acesso público a todos os endpoints que começam com /cadastro
-                .requestMatchers("/cadastro/**").permitAll()
+                // acesso público
+                .requestMatchers("/auth/**").permitAll()
                 
-                // Exige autenticação para qualquer outra requisição
+                // autenticação para qualquer outra requisição
                 .anyRequest().authenticated()
             );
 

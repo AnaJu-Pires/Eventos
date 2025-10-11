@@ -21,7 +21,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             
-            String confirmationUrl = "http://localhost:8081/cadastro/confirmar?token=" + token;
+            String confirmationUrl = "http://localhost:8081/auth/confirm?token=" + token;
 
             message.setFrom("nao-responda@eventosesportivosifsp.com.br");
             message.setTo(to);
