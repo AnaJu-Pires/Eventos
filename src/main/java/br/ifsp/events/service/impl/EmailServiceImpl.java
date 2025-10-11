@@ -16,8 +16,8 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    @Async //executado em segundo plano
-    public void sendConfirmationEmail(String to, String token) {
+    @Async //executado em segundo plano(aqui eu puxo os erros pelo AsyncExceptionHandler)
+    public void sendConfirmationEmail(String to, String token, String nome) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             
@@ -27,8 +27,8 @@ public class EmailServiceImpl implements EmailService {
             message.setTo(to);
             message.setSubject("Confirmação de Cadastro - Eventos Esportivos IFSP");
             message.setText(
-                "Olá!\n\n" +
-                "Seja bem vindo a nossa API de Eventos Esportivos do IFSP. " +
+                "Olá++ " + nome + "!\n\n" +
+                "Seja bem-vindo(a) a nossa API de Eventos Esportivos do IFSP. " +
                 "Por favor, clique no link abaixo para ativar sua conta:\n\n" +
                 confirmationUrl
             );

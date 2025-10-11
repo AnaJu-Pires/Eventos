@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
     
-        emailService.sendConfirmationEmail(user.getEmail(), token);
+        emailService.sendConfirmationEmail(user.getEmail(), token, user.getNome());
     }
 
     @Override

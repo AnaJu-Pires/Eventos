@@ -7,5 +7,5 @@ public interface EmailService {
      * @param to endereço de e-mail do destinatário
      * @param token token de confirmação a ser incluído no link
      */
-    void sendConfirmationEmail(String to, String token);
+    void sendConfirmationEmail(String to, String token, String nome);
 }

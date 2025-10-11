@@ -15,12 +15,10 @@ public class AsyncExceptionHandler implements AsyncConfigurer {
     @Override
     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
         return (ex, method, params) -> {
-            logger.error("========================================");
-            logger.error("Exceção não capturada em método assíncrono!");
+            logger.error("Exceção não capturada no Async");
             logger.error("Método: {}", method.getName());
             logger.error("Parâmetros: {}", Arrays.toString(params));
             logger.error("Mensagem da Exceção: {}", ex.getMessage());
-            logger.error("========================================");
         };
     }
 }

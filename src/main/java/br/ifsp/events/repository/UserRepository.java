@@ -9,37 +9,33 @@ import br.ifsp.events.model.User;
 
 public interface UserRepository {
     /**
-     * Salva ou atualiza um usuário no banco de dados.
-     * @param user O usuário a ser salvo.
-     * @return O usuário salvo (com o ID, se for novo).
+     * @param user 
+     * @return 
      */
     User save(User user);
 
     /**
-     * Verifica se um usuário com o e-mail fornecido já existe.
-     * @param email O e-mail a ser verificado.
-     * @return true se o e-mail já existe, false caso contrário.
+     * @param email
+     * @return
      */
     boolean existsByEmail(String email);
 
     /**
-     * Busca um usuário pelo seu token de confirmação de cadastro.
-     * @param token O token a ser buscado.
-     * @return um Optional contendo o usuário, se encontrado.
+     * @param token
+     * @return 
      */
     Optional<User> findByTokenConfirmacao(String token);
 
     /**
-     * Encontra todos os usuários inativos cujo token de confirmação já expirou.
-     * @param status O status a ser buscado (INATIVO).
-     * @param now A data/hora atual para comparação.
-     * @return Uma lista de usuários expirados.
+     * @param status
+     * @param now
+     * @return
      */
     List<User> findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now);
     
+    //deleta a lista de usuarios(usado para remover usuarios inativos(nao confirmaram o token))
     /**
-     * Deleta uma lista de usuários em lote.
-     * @param users A lista de usuários a ser deletada.
+     * @param users
      */
     void deleteAll(List<User> users);
 }
