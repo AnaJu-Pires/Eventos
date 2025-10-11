@@ -4,6 +4,8 @@
 - clona o repo
 - roda isso : docker compose up --build(comando padrao de inciar(se quiser liberar o terminal add um -d))
 
+*obs: comando para ver erros -->docker compose logs -f app*
+
 ### Links:
 
 - API: http://localhost:8081
