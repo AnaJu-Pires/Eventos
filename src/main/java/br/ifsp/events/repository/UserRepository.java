@@ -38,4 +38,6 @@ public interface UserRepository {
      * @param users
      */
     void deleteAll(List<User> users);
+
+    Optional<User> findByEmail(String email);
 }

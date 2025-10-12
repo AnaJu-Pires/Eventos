@@ -11,3 +11,21 @@
 - API: http://localhost:8081
 - PHPMyAdmin: http://localhost:8082 (user|password)
 - Swagger: http://localhost:8081/swagger-ui.html
+
+
+## Funcionalidades:
+
+- http://localhost:8081/auth/register
+{
+    "nome": "Nathalie Xavier",
+    "email": "nat@aluno.ifsp.edu.br",
+    "senha": "123456"
+}
+- ai vai mandar um email... soq é na minha conta, ai vamos ter uma situação (me avisa que eu mando o código )*obs: isso a gente vai mudar depois*
+- http://localhost:8081/auth/login
+{
+    "email": "nat@aluno.ifsp.edu.br",
+    "senha": "123456"
+}
+- http://localhost:8081/users/me
+quando voce faz login gera um token, ai pra conseguir ver isso voce tem que ir em autorization no postman e mudar o auth type pra bearer token e colocar o codigo la
