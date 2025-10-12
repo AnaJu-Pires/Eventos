@@ -1,5 +1,7 @@
 package br.ifsp.events.controller;
 
+import br.ifsp.events.dto.user.UserLoginDTO;
+import br.ifsp.events.dto.user.UserLoginResponseDTO;
 import br.ifsp.events.dto.user.UserRegisterDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.service.UserService;
@@ -27,6 +29,11 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> confirm(@RequestParam("token") String token) {
         UserResponseDTO confirmedUser = userService.confirmUser(token);
         return ResponseEntity.ok(confirmedUser);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<UserLoginResponseDTO> login(@RequestBody @Valid UserLoginDTO loginDTO) {
+        return ResponseEntity.ok(userService.login(loginDTO));
     }
     
 }

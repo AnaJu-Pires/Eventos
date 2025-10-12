@@ -72,4 +72,16 @@ public class UserRepositoryImpl implements UserRepository {
             }
         }
     }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        String jpql = "SELECT u FROM User u WHERE u.email = :email";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("email", email);
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
 }

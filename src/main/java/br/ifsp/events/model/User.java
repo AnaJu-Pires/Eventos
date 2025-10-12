@@ -20,6 +20,11 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import java.util.Collection;
+import java.util.List;
 
 
 @Entity
@@ -27,7 +32,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,5 +73,42 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "modalidade_id")
     )
     private Set<Modalidade> interesses;
+
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(perfilUser.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.statusUser == StatusUser.ATIVO;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.statusUser != StatusUser.BLOQUEADO;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true; // lógica futura
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true; // lógica futura
+    }
+    
     
 }
