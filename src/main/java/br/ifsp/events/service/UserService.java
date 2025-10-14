@@ -4,6 +4,8 @@ import br.ifsp.events.dto.user.UserLoginDTO;
 import br.ifsp.events.dto.user.UserLoginResponseDTO;
 import br.ifsp.events.dto.user.UserRegisterDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
+import br.ifsp.events.dto.user.UserRoleUpdateDTO;
+
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.Authentication; 
 
@@ -24,4 +26,11 @@ public interface UserService extends UserDetailsService {
     UserLoginResponseDTO login(UserLoginDTO loginDTO);
 
     UserResponseDTO getMyInfo(Authentication authentication);
+
+    /**
+     * @param userId
+     * @param roleUpdateDTO
+     * @return
+     */
+    UserResponseDTO updateUserRole(Long userId, UserRoleUpdateDTO roleUpdateDTO);
 }

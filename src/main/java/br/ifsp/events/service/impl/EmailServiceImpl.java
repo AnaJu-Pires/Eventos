@@ -27,7 +27,7 @@ public class EmailServiceImpl implements EmailService {
             message.setTo(to);
             message.setSubject("Confirmação de Cadastro - Eventos Esportivos IFSP");
             message.setText(
-                "Olá++ " + nome + "!\n\n" +
+                "Olá, " + nome + "!\n\n" +
                 "Seja bem-vindo(a) a nossa API de Eventos Esportivos do IFSP. " +
                 "Por favor, clique no link abaixo para ativar sua conta:\n\n" +
                 confirmationUrl

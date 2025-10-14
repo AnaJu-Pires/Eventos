@@ -1,22 +1,18 @@
 package br.ifsp.events.dto.user;
 
+import lombok.Data;
 import br.ifsp.events.model.PerfilUser;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Informações de um usuário")
-public class UserResponseDTO {
-    @Schema(description = "ID do usuário")
-    private Long id;
-    @Schema(description = "Nome do usuário")
-    private String nome;
-    @Schema(description = "E-mail do usuário")
-    private String email;
+@Schema(description = "Requisição de atualização de perfil de usuário exclusivo para administradores")
+public class UserRoleUpdateDTO {
     @Schema(description = "Perfil do usuário")
+    @NotNull(message = "O perfil do usuário é obrigatório")
     private PerfilUser perfilUser;
 }
