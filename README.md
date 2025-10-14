@@ -12,6 +12,10 @@
 - PHPMyAdmin: http://localhost:8082 (user|password)
 - Swagger: http://localhost:8081/swagger-ui.html
 
+## Documentação e versionamento
+- Pra facilitar a vida ja vai fazendo a documentação swagger conforme as task(Controller e DTOs)
+- Façam suas task dentro do seu card( git checkout -b feature/Bnº) e antes de dar PR sempre dar pull na main e mergear com sua branch
+- Para confirmar a PR vai no git na parte de pull request
 
 ## Funcionalidades:
 
