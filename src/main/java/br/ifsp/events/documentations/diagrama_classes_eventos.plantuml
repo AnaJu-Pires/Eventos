@@ -1,9 +1,5 @@
 @startuml diagrama_classes_eventos
 
-class ModelMapper {
-    + toDTO (task Task): taskDTО
-    + fromDTO(taskDTO taskDTO): Task
-}
 class AuthController {
     - userService: final UserService
     + AuthController(UserService userService)
@@ -15,6 +11,7 @@ class UserController {
     - userService: final UserService
     + UserController(UserService userService)
     + getMyInfo(Authentication authentication): ResponseEntity<UserResponseDTO>
+    + updateUserRole(@PathVariable Long id, @RequestBody @Valid UserRoleUpdateDTO roleUpdateDTO): ResponseEntity<UserResponseDTO>
 }
 class ModalidadeController {
     - modalidadeService: final ModalidadeService
@@ -142,6 +139,7 @@ class UserRepositoryImpl <<implementation>> {
     + findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now): List<User>
     + deleteAll(List<User> users): void
     + findByEmail(String email): Optional<User>
+    + findById(Long id): Optional<User>
 }
 class ModalidadeRepositoryImpl <<implementation>> {
     
@@ -156,11 +154,12 @@ interface UserRepository {
     findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now): List<User>
     deleteAll(List<User> users): void
     findByEmail(String email): Optional<User>
+    findById(Long id): Optional<User>
 }
-class ModalidadeRepository {
+interface ModalidadeRepository {
     
 }
-class EventoRepository {
+interface EventoRepository {
     
 }
 class EmailServiceImpl <<implementation>> {
@@ -242,32 +241,53 @@ class EventoService {
     updateEventoPartiallyById(@PathVariable Long id, )
     deleteEventoById(@PathVariable Long id): void
 }
-
+class ModelMapper {
+    + toDTO (task Task): taskDTО
+    + fromDTO(taskDTO taskDTO): Task
+}
+exception BusinessRuleException {
+    + BusinessRuleException(String message)
+}
+exception ResourceNotFoundException {
+    + ResourceNotFoundException(String message)
+}
+exception RestExceptionHandler <<Handler>>{
+    - logger = LoggerFactory.getLogger(RestExceptionHandler.class): static final Logger
+    + handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+    + handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+    + handleBusinessRule(BusinessRuleException ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+    + handleGenericException(Exception ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+}
+class JwtAuthFilter <<Filter>> {
+    - jwtService: final JwtService
+    - userDetailsService: final UserDetailsService
+    + JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService)
+    # doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain): void
+}
 
 AuthController -- UserServiceImpl
 UserController -- UserServiceImpl
-UserServiceImpl -- ModelMapper
-ModelMapper -- UserRegisterDTO
-ModelMapper -- UserResponseDTO
-ModelMapper -- UserLoginDTO
-ModelMapper -- UserLoginResponseDTO
-UserRepositoryImpl -- ModelMapper
+UserServiceImpl -- UserRegisterDTO
+UserServiceImpl -- UserResponseDTO
+UserServiceImpl -- UserLoginDTO
+UserServiceImpl -- UserLoginResponseDTO
+UserServiceImpl -- UserRepositoryImpl
 UserRepositoryImpl -- User
 
 ModalidadeController -- ModalidadeServiceImpl
-ModalidadeServiceImpl -- ModelMapper
-ModelMapper -- ModalidadeRequestDTO
-ModelMapper -- ModalidadeResponseDTO
-ModalidadeRepositoryImpl -- ModelMapper
+ModalidadeServiceImpl -- ModalidadeRequestDTO
+ModalidadeServiceImpl -- ModalidadeResponseDTO
+ModalidadeServiceImpl -- ModalidadeRepositoryImpl
 ModalidadeRepositoryImpl -- Modalidade
 
 EventoController -- EventoServiceImpl
-EventoServiceImpl -- ModelMapper
-ModelMapper -- EventoRequestDTO
-ModelMapper -- EventoResponseDTO
-EventoRepositoryImpl -- ModelMapper
+EventoServiceImpl -- EventoRequestDTO
+EventoServiceImpl -- EventoResponseDTO
+EventoServiceImpl -- EventoRepositoryImpl
 EventoRepositoryImpl -- Evento
 
+EmailServiceImpl -- UserServiceImpl
+JwtServiceImpl -- JwtAuthFilter
 
 UserRepository <|.. UserRepositoryImpl
 ModalidadeRepository <|.. ModalidadeRepositoryImpl
