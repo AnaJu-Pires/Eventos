@@ -123,4 +123,31 @@ public class EventServiceImpl implements EventService {
 
         return toResponseDTO(updatedEvento);
     }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        // 1. Encontra o evento no banco de dados.
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
+
+        // 2. Validação de segurança: Apenas o organizador do evento pode deletá-lo ou cancelá-lo.
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User organizadorLogado = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessRuleException("Organizador não encontrado."));
+
+        if (!Objects.equals(evento.getOrganizador().getId(), organizadorLogado.getId())) {
+            throw new BusinessRuleException("Apenas o organizador do evento pode removê-lo ou cancelá-lo.");
+        }
+
+        // 3. LÓGICA CONDICIONAL: Verifica o status do evento.
+        if (evento.getStatus() == StatusEvento.PLANEJADO) {
+            // Se o evento ainda não começou, remove fisicamente do banco.
+            eventoRepository.delete(evento);
+        } else {
+            // Se o evento já começou ou terminou, faz uma "deleção lógica" mudando o status.
+            evento.setStatus(StatusEvento.CANCELADO);
+            eventoRepository.save(evento);
+        }
+    }
 }

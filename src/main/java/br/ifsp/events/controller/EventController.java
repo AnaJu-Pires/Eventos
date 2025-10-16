@@ -4,6 +4,7 @@ import java.net.URI;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -46,5 +47,12 @@ public class EventController {
     public ResponseEntity<EventResponseDTO> update(@PathVariable Long id, @RequestBody @Valid EventRequestDTO eventRequestDTO) {
         EventResponseDTO updatedEvent = eventService.update(id, eventRequestDTO);
         return ResponseEntity.ok(updatedEvent);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('GESTOR_EVENTOS')")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        eventService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
