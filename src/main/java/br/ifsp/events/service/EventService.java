@@ -5,4 +5,6 @@ import br.ifsp.events.dto.event.EventResponseDTO;
 
 public interface EventService {
     EventResponseDTO create(EventRequestDTO eventRequestDTO);
+
+    EventResponseDTO update(Long id, EventRequestDTO eventRequestDTO);
 }
