@@ -1,0 +1,151 @@
+@startuml ERD
+
+!theme vibrant
+
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam ranksep 90
+skinparam nodesep 120       
+
+entity "users" {
+    + id [PK]
+    --
+    nome: varchar
+    email: varchar (unique)
+    senha: varchar
+    perfilUser: enum
+    statusUser: enum
+    tokenConfirmacao: varchar
+    tokenRecuperacaoSenha: varchar
+    dataExpiracaoTokenConfirmacao: timestamp
+    dataExpiracaoTokenRecuperacao: timestamp
+    points: int
+}
+
+entity "times" {
+    + id [PK]
+    --
+    nome: varchar
+    # capitaoId [FK]
+}
+
+entity "timeMembros" {
+    + id [PK]
+    --
+    # userId [FK]
+    # timeId [FK]
+    status: enum ('PENDENTE', 'ACEITO')
+}
+
+entity "eventos" {
+    + id [PK]
+    --
+    nome: varchar
+    descricao: text
+    dataInicio: timestamp
+    dataFim: timestamp
+    status: enum
+    # organizadorId [FK]
+}
+
+entity "modalidades" {
+    + id [PK]
+    --
+    nome: varchar (unique)
+    descricao: text
+}
+
+entity "eventoModalidades" {
+    + id [PK]
+    --
+    # eventoId [FK]
+    # modalidadeId [FK]
+    maxTimes: int
+    minJogadoresPorTime: int
+    maxJogadoresPorTime: int
+    formato: enum ('MATA_MATA', 'PONTOS_CORRIDOS')
+}
+
+entity "inscricoes" {
+    + id [PK]
+    --
+    # timeId [FK]
+    # eventoModalidadeId [FK]
+    status: enum ('PENDENTE', 'APROVADA', 'REJEITADA')
+}
+
+entity "inscricaoJogadores" {
+    + id [PK]
+    --
+    # inscricaoId [FK]
+    # jogadorId [FK]
+}
+
+entity "partidas" {
+    + id [PK]
+    --
+    # eventoModalidadeId [FK]
+    # time1Id [FK]
+    # time2Id [FK]
+    time1Placar: int
+    time2Placar: int
+    round: int
+    status: enum ('AGENDADA', 'EM_ANDAMENTO', 'FINALIZADA')
+    # vencedorId [FK]
+}
+
+entity "posts" {
+    + id [PK]
+    --
+    # userId [FK]
+    # eventoId [FK]
+    conteudo: text
+    mediaUrl: varchar
+    criadoEm: timestamp
+}
+
+entity "comentarios" {
+    + id [PK]
+    --
+    # postId [FK]
+    # userId [FK]
+    conteudo: text
+    criadoEm: timestamp
+}
+
+entity "usuarioInteresses" {
+    # usuarioId [PK, FK]
+    # modalidadeId [PK, FK]
+}
+
+
+users -down-> times : "é capitão de"
+times -down-> timeMembros : "possui"
+users -right-> timeMembros : "é membro de"
+
+users -down-> eventos : "gerencia"
+eventos -down-> eventoModalidades : "contém"
+modalidades -left-> eventoModalidades : "é jogada em"
+
+eventoModalidades -down-> inscricoes : "recebe"
+times ..> inscricoes : "se inscreve em"
+
+inscricoes -down-> inscricaoJogadores : "define elenco para"
+users .right.> inscricaoJogadores : "compete em"
+
+eventoModalidades -down-> partidas : "tem partidas"
+times ..> partidas : "(joga como time 1)"
+times ..> partidas : "(joga como time 2)"
+times ..> partidas : "(é o vencedor)"
+
+users -right-> usuarioInteresses : "tem preferência por"
+modalidades -up-> usuarioInteresses : "é preferida por"
+users -right-> posts : "cria"
+
+eventos -right-> posts : "tem posts em seu feed"
+posts -down-> comentarios : "recebe"
+users ..> comentarios : "comenta em"
+
+@enduml
