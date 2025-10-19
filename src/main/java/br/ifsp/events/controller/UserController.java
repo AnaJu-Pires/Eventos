@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.ifsp.events.dto.ErrorResponse;
+import br.ifsp.events.dto.user.UserInteresseResponseDTO;
+import br.ifsp.events.dto.user.UserInteresseUpdateDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.dto.user.UserRoleUpdateDTO;
 import br.ifsp.events.exception.CsvGenerationException;
+import br.ifsp.events.model.User;
 import br.ifsp.events.service.UserService;
 import br.ifsp.events.util.CsvGenerator;
 import io.swagger.v3.oas.annotations.Operation;
@@ -74,7 +77,26 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @Operation(summary = "Busca as modalidades de interesse do usuário logado")
+    @GetMapping("/me/interesses")
+    public ResponseEntity<UserInteresseResponseDTO> getMeusInteresses(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        UserInteresseResponseDTO responseDTO = userService.getUserInteresses(user.getId());
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @Operation(summary = "Atualiza as modalidades de interesse do usuário logado")
+    @PatchMapping("/me/interesses")
+    public ResponseEntity<UserInteresseResponseDTO> atualizarMeusInteresses(
+            Authentication authentication,
+            @Valid @RequestBody UserInteresseUpdateDTO interessesDTO) {
+        User user = (User) authentication.getPrincipal();
+        UserInteresseResponseDTO responseDTO = userService.updateUserInteresses(user.getId(), interessesDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
     @GetMapping("/perfis/csv")
+    @PreAuthorize("hasRole('ADMIN')")
     public void downloadPerfisUsuariosCsv(HttpServletResponse response) {
         response.setContentType("text/csv");
         response.setCharacterEncoding("UTF-8");
