@@ -1,5 +1,12 @@
 package br.ifsp.events.repository.impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.ifsp.events.model.StatusUser;
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.UserRepository;
@@ -7,12 +14,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -29,6 +30,13 @@ public class UserRepositoryImpl implements UserRepository {
         } else {
             return entityManager.merge(user); // atualiza um que ja existe
         }
+    }
+
+    @Override
+    public List<User> findAll() {
+        String jpql = "SELECT u FROM User u";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        return query.getResultList();
     }
 
     @Override

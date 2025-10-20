@@ -1,5 +1,22 @@
 package br.ifsp.events.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import br.ifsp.events.dto.user.UserLoginDTO;
+import br.ifsp.events.dto.user.UserLoginResponseDTO;
 import br.ifsp.events.dto.user.UserRegisterDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.dto.user.UserRoleUpdateDTO;
@@ -12,19 +29,6 @@ import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.EmailService;
 import br.ifsp.events.service.JwtService;
 import br.ifsp.events.service.UserService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
-import java.util.UUID;
-import br.ifsp.events.dto.user.UserLoginDTO;
-import br.ifsp.events.dto.user.UserLoginResponseDTO;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.core.Authentication;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -157,6 +161,21 @@ public class UserServiceImpl implements UserService {
         return toResponseDTO(updatedUser);
     }
 
+    @Override
+    public List<UserResponseDTO> listarPerfisUsuarios() {
+        List<User> usuarios = userRepository.findAll();
+        if (usuarios.isEmpty()) {
+            throw new ResourceNotFoundException("Nenhum Usuário encontrado.");
+        }
+        return usuarios.stream()
+                .map(u -> new UserResponseDTO(
+                        u.getId(),
+                        u.getNome(),
+                        u.getEmail(),
+                        u.getPerfilUser()
+                ))
+                .collect(Collectors.toList());
+    }
 
     private UserResponseDTO toResponseDTO(User user) {
         return new UserResponseDTO(

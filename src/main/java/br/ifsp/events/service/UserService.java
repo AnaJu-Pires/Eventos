@@ -1,13 +1,15 @@
 package br.ifsp.events.service;
 
+import java.util.List;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
 import br.ifsp.events.dto.user.UserLoginDTO;
 import br.ifsp.events.dto.user.UserLoginResponseDTO;
 import br.ifsp.events.dto.user.UserRegisterDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
-import br.ifsp.events.dto.user.UserRoleUpdateDTO;
-
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.Authentication; 
+import br.ifsp.events.dto.user.UserRoleUpdateDTO; 
 
 public interface UserService extends UserDetailsService {
     
@@ -33,4 +35,6 @@ public interface UserService extends UserDetailsService {
      * @return
      */
     UserResponseDTO updateUserRole(Long userId, UserRoleUpdateDTO roleUpdateDTO);
+
+    List<UserResponseDTO> listarPerfisUsuarios();
 }
