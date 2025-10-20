@@ -75,7 +75,6 @@ public class User implements UserDetails {
     )
     private Set<Modalidade> interesses;
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(perfilUser.name()));
@@ -109,7 +108,5 @@ public class User implements UserDetails {
     @Override
     public boolean isCredentialsNonExpired() {
         return true; // lógica futura
-    }
-    
-    
+    } 
 }

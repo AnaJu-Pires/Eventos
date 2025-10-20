@@ -1,5 +1,6 @@
 package br.ifsp.events.service.impl;
 
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -8,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.ifsp.events.dto.event.EventPatchDTO;
 import br.ifsp.events.dto.event.EventRequestDTO;
 import br.ifsp.events.dto.event.EventResponseDTO;
 import br.ifsp.events.exception.BusinessRuleException;
@@ -99,6 +101,7 @@ public class EventServiceImpl implements EventService {
         if (!Objects.equals(evento.getOrganizador().getId(), organizadorLogado.getId())) {
             throw new BusinessRuleException("Apenas o organizador do evento pode editá-lo.");
         }
+        validateOrganizerOwnership(evento);
 
         // 4. Validação da data
         if (eventRequestDTO.getDataFim().isBefore(eventRequestDTO.getDataInicio())) {
@@ -132,6 +135,57 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
 
         // 2. Validação de segurança: Apenas o organizador do evento pode deletá-lo ou cancelá-lo.
+    public EventResponseDTO patch(Long id, EventPatchDTO eventPatchDTO) {
+        // 1. Encontra o evento no banco de dados. Se não existir, lança exceção.
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
+
+        // 2. REGRA DE NEGÓCIO: Verifica se o evento está no status 'PLANEJADO'.
+        if (evento.getStatus() != StatusEvento.PLANEJADO) {
+            throw new BusinessRuleException("Só é possível editar eventos que ainda não iniciaram (status PLANEJADO).");
+        }
+
+        // 3. Validação de segurança: Verifica se o usuário logado é o organizador do evento.
+        validateOrganizerOwnership(evento);
+
+        // 4. Aplica o PATCH (atualiza apenas os campos presentes)
+        
+        // Nome
+        eventPatchDTO.getNome().ifPresent(evento::setNome);
+        
+        // Descricao
+        eventPatchDTO.getDescricao().ifPresent(evento::setDescricao);
+
+        // Data Início e Data Fim
+        LocalDate novaDataInicio = eventPatchDTO.getDataInicio().orElse(evento.getDataInicio());
+        LocalDate novaDataFim = eventPatchDTO.getDataFim().orElse(evento.getDataFim());
+        
+        // Validação da data após a aplicação do patch (usa os novos valores ou os valores existentes)
+        if (novaDataFim.isBefore(novaDataInicio)) {
+            throw new BusinessRuleException("A data de fim não pode ser anterior à data de início.");
+        }
+
+        // Aplica as datas validadas
+        evento.setDataInicio(novaDataInicio);
+        evento.setDataFim(novaDataFim);
+
+
+        // Modalidades
+        eventPatchDTO.getModalidadesIds().ifPresent(ids -> {
+            Set<Modalidade> modalidades = modalidadeRepository.findByIdIn(ids);
+            if (modalidades.size() != ids.size()) {
+                throw new BusinessRuleException("Uma ou mais modalidades não foram encontradas.");
+            }
+            evento.setModalidades(modalidades);
+        });
+
+        // 5. Salva o evento atualizado
+        Evento patchedEvento = eventoRepository.save(evento);
+
+        return toResponseDTO(patchedEvento);
+    }
+    
+    private void validateOrganizerOwnership(Evento evento) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User organizadorLogado = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessRuleException("Organizador não encontrado."));
@@ -139,6 +193,20 @@ public class EventServiceImpl implements EventService {
         if (!Objects.equals(evento.getOrganizador().getId(), organizadorLogado.getId())) {
             throw new BusinessRuleException("Apenas o organizador do evento pode removê-lo ou cancelá-lo.");
         }
+            throw new BusinessRuleException("Apenas o organizador do evento pode editá-lo.");
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        // 1. Encontra o evento no banco de dados.
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
+
+        // 2. Validação de segurança: Apenas o organizador do evento pode deletá-lo ou cancelá-lo.
+        validateOrganizerOwnership(evento);
 
         // 3. LÓGICA CONDICIONAL: Verifica o status do evento.
         if (evento.getStatus() == StatusEvento.PLANEJADO) {

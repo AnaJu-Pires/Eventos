@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import java.util.Arrays;
 
 @Configuration
+// essa classe trata as exceções que rodam de forma assíncrona a aplicação(email, etc)
 public class AsyncExceptionHandler implements AsyncConfigurer {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncExceptionHandler.class);
