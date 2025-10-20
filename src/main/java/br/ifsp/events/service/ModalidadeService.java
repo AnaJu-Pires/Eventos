@@ -1,8 +1,11 @@
 package br.ifsp.events.service;
 
-import br.ifsp.events.exception.ResourceNotFoundException;
-import br.ifsp.events.dto.modalidade.ModalidadeDTO;
+import br.ifsp.events.dto.modalidade.ModalidadePatchRequestDTO;
+import br.ifsp.events.dto.modalidade.ModalidadeRequestDTO;
+import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
+import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.exception.DuplicateResourceException;
+import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Modalidade;
 import br.ifsp.events.repository.ModalidadeRepository;
 import org.modelmapper.ModelMapper;
@@ -23,93 +26,83 @@ public class ModalidadeService {
     private ModelMapper modelMapper;
 
     @Transactional
-    public ModalidadeDTO create(ModalidadeDTO modalidadeDTO) {
-
-        if (modalidadeRepository.findByNome(modalidadeDTO.getNome()).isPresent()) {
-            throw new DuplicateResourceException("Já existe uma modalidade com o nome: " + modalidadeDTO.getNome());
+    public ModalidadeResponseDTO create(ModalidadeRequestDTO requestDTO) {
+        if (modalidadeRepository.findByNome(requestDTO.getNome()).isPresent()) {
+            throw new DuplicateResourceException("Já existe uma modalidade com o nome: " + requestDTO.getNome());
         }
         
-        Modalidade modalidade = convertToEntity(modalidadeDTO);
+        Modalidade modalidade = modelMapper.map(requestDTO, Modalidade.class);
         Modalidade savedModalidade = modalidadeRepository.save(modalidade);
-        return convertToDto(savedModalidade);
+        return modelMapper.map(savedModalidade, ModalidadeResponseDTO.class);
     }
 
     @Transactional
-    public ModalidadeDTO update(Long id, ModalidadeDTO modalidadeDTO) {
-        Modalidade modalidade = modalidadeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Modalidade não encontrada com o id: " + id));
+    public ModalidadeResponseDTO update(Long id, ModalidadeRequestDTO requestDTO) {
+        Modalidade modalidade = findModalidadeById(id);
 
-        // Verifica duplicidade se o nome for alterado
-        modalidadeRepository.findByNome(modalidadeDTO.getNome()).ifPresent(existing -> {
+        modalidadeRepository.findByNome(requestDTO.getNome()).ifPresent(existing -> {
             if (!existing.getId().equals(id)) {
-                throw new DuplicateResourceException("O nome '" + modalidadeDTO.getNome() + "' já está em uso por outra modalidade.");
+                throw new DuplicateResourceException("O nome '" + requestDTO.getNome() + "' já está em uso por outra modalidade.");
             }
         });
 
-        modalidade.setNome(modalidadeDTO.getNome());
-        modalidade.setDescricao(modalidadeDTO.getDescricao()); // Atualiza a descrição
+        modalidade.setNome(requestDTO.getNome());
+        modalidade.setDescricao(requestDTO.getDescricao());
         
         Modalidade updatedModalidade = modalidadeRepository.save(modalidade);
-        return convertToDto(updatedModalidade);
+        return modelMapper.map(updatedModalidade, ModalidadeResponseDTO.class);
     }
     
     @Transactional
-    public ModalidadeDTO patch(Long id, ModalidadeDTO modalidadeDTO) {
-        Modalidade modalidade = modalidadeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Modalidade não encontrada com o id: " + id));
+    public ModalidadeResponseDTO patch(Long id, ModalidadePatchRequestDTO requestDTO) {
+        Modalidade modalidade = findModalidadeById(id);
 
-        if (modalidadeDTO.getNome() != null) {
-            // Verifica duplicidade ao tentar alterar o nome
-            modalidadeRepository.findByNome(modalidadeDTO.getNome()).ifPresent(existing -> {
+        if (requestDTO.getNome() != null) {
+            modalidadeRepository.findByNome(requestDTO.getNome()).ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
-                    throw new DuplicateResourceException("O nome '" + modalidadeDTO.getNome() + "' já está em uso por outra modalidade.");
+                    throw new DuplicateResourceException("O nome '" + requestDTO.getNome() + "' já está em uso por outra modalidade.");
                 }
             });
-            modalidade.setNome(modalidadeDTO.getNome());
+            modalidade.setNome(requestDTO.getNome());
         }
         
-        if (modalidadeDTO.getDescricao() != null) {
-            modalidade.setDescricao(modalidadeDTO.getDescricao()); // Atualiza a descrição
+        // Esta verificação corrige o problema da descrição nula
+        if (requestDTO.getDescricao() != null) {
+            modalidade.setDescricao(requestDTO.getDescricao());
         }
         
         Modalidade patchedModalidade = modalidadeRepository.save(modalidade);
-        return convertToDto(patchedModalidade);
-    }
-
-    // --- Métodos que não precisam de grandes alterações ---
-
-    @Transactional(readOnly = true)
-    public List<ModalidadeDTO> findAll() {
-        return modalidadeRepository.findAll().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public ModalidadeDTO findById(Long id) {
-        Modalidade modalidade = modalidadeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Modalidade não encontrada com o id: " + id));
-        return convertToDto(modalidade);
+        return modelMapper.map(patchedModalidade, ModalidadeResponseDTO.class);
     }
 
     @Transactional
     public void delete(Long id) {
-        if (!modalidadeRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Modalidade não encontrada com o id: " + id);
+        Modalidade modalidade = findModalidadeById(id);
+
+        // REGRA DE NEGÓCIO: Não permitir exclusão se a modalidade estiver vinculada a eventos
+        if (modalidade.getEventos() != null && !modalidade.getEventos().isEmpty()) {
+            throw new BusinessRuleException("Não é possível excluir uma modalidade que está associada a um ou mais eventos.");
         }
-        // ATENÇÃO: Se a modalidade estiver associada a um evento ou interesse de usuário,
-        // a exclusão pode falhar com uma ConstraintViolationException.
-        // O tratamento adequado (ex: remover associações primeiro) pode ser necessário.
-        modalidadeRepository.deleteById(id);
-    }
-    
-    // --- Métodos de conversão atualizados ---
-    
-    private ModalidadeDTO convertToDto(Modalidade modalidade) {
-        return modelMapper.map(modalidade, ModalidadeDTO.class);
+        
+        modalidadeRepository.delete(modalidade);
     }
 
-    private Modalidade convertToEntity(ModalidadeDTO modalidadeDTO) {
-        return modelMapper.map(modalidadeDTO, Modalidade.class);
+    @Transactional(readOnly = true)
+    public List<ModalidadeResponseDTO> findAll() {
+        return modalidadeRepository.findAll().stream()
+                .map(modalidade -> modelMapper.map(modalidade, ModalidadeResponseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ModalidadeResponseDTO findById(Long id) {
+        Modalidade modalidade = findModalidadeById(id);
+        return modelMapper.map(modalidade, ModalidadeResponseDTO.class);
+    }
+
+    // Método privado para evitar repetição de código
+    private Modalidade findModalidadeById(Long id) {
+        return modalidadeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Modalidade não encontrada com o id: " + id));
     }
 }
