@@ -1,0 +1,307 @@
+@startuml diagrama_classes_eventos
+
+class AuthController {
+    - userService: final UserService
+    + AuthController(UserService userService)
+    + register(@RequestBody @Valid UserRegisterDTO registerDTO): ResponseEntity<String>
+    + confirm(@RequestParam("token") String token): ResponseEntity<UserResponseDTO>
+    + login(@RequestBody @Valid UserLoginDTO loginDTO): ResponseEntity<UserLoginResponseDTO>
+}
+class UserController {
+    - userService: final UserService
+    + UserController(UserService userService)
+    + getMyInfo(Authentication authentication): ResponseEntity<UserResponseDTO>
+    + updateUserRole(@PathVariable Long id, @RequestBody @Valid UserRoleUpdateDTO roleUpdateDTO): ResponseEntity<UserResponseDTO>
+}
+class ModalidadeController {
+    - modalidadeService: final ModalidadeService
+    + createModalidade(String nome, String descricao, Set<User> usuariosInteressados, Set<Evento> eventos): Modalidade
+    + getAllModalidades(Pageable pageable): Page<Modalidade>
+    + getModalidadeById(@PathVariable Long id): Modalidade
+    + getModalidadeByNome(String nome): Modalidade
+    + getModalidadesByUsuarioInteressado(@PathVariable Long usuario_id): Modalidade
+    + getModalidadesByEvento(@PathVariable Long evento_id, Pageable pageable): Page<Modalidade>
+}
+class EventoController {
+    - eventoService: final EventoService
+    + createEvento(String nome, String descricao, LocalDate dataInicio, LocalDate dataFim, StatusEvento status, User organizador, Set<Modalidade> modalidades): Evento
+    + getAllEventos(Pageable pageable): Page<Evento>
+    + getEventoById(@PathVariable Long id): Evento
+    + getEventoByNome(String nome): Evento
+    + updateEventoTotallyById(@PathVariable Long id): EventoResponseDTO
+    + updateEventoPartiallyById(@PathVariable Long id, )
+    + deleteEventoById(@PathVariable Long id): void
+}
+class UserLoginDTO {
+    - email: String
+    - senha: String
+}
+class UserLoginResponseDTO {
+    - token: String
+}
+class UserRegisterDTO {
+    - nome: String
+    - email: String
+    - senha: String
+}
+class UserResponseDTO {
+    - id: Long
+    - nome: String
+    - email: String
+    - perfilUser: PerfilUser
+}
+class ModalidadeRequestDTO {
+    - nome: String
+    - descricao: String
+    - eventos: Set<Evento>
+}
+class ModalidadeResponseDTO {
+    - id: Long
+    - nome: String
+    - descricao: String
+    - usuariosInteressados: Set<User> 
+    - eventos: Set<Evento>
+}
+class EventoRequestDTO {
+    - nome: String
+    - descricao: String
+    - dataInicio: LocalDate
+    - dataFim: LocalDate
+    - status: StatusEvento
+    - organizador: User
+    - modalidades: Set<Modalidade>
+}
+class EventoResponseDTO {
+    - id: Long
+    - nome: String
+    - descricao: String
+    - dataInicio: LocalDate
+    - dataFim: LocalDate
+    - status: StatusEvento
+    - organizador: User
+    - modalidades: Set<Modalidade>
+}
+class Evento {
+    - id: Long
+    - nome: String
+    - descricao: String
+    - dataInicio: LocalDate
+    - dataFim: LocalDate
+    - status: StatusEvento
+    - organizador: User
+    - modalidades: Set<Modalidade>
+}
+class Modalidade {
+    - id: Long
+    - nome: String
+    - descricao: String
+    - usuariosInteressados: Set<User>
+    - eventos: Set<Evento>
+}
+enum PerfilUser <<enum>> {
+    ROLE_ADMIN
+    ROLE_GESTOR_EVENTOS
+    ROLE_ALUNO
+}
+enum StatusEvento <<enum>> {
+    PLANEJADO
+    EM_ANDAMENTO
+    FINALIZADO
+    CANCELADO
+}
+enum StatusUser <<enum>> {
+    ATIVO
+    INATIVO
+    BLOQUEADO
+}
+class User {
+    - id: Long
+    - nome: String
+    - email: String
+    - senha: String
+    - perfilUser: PerfilUser
+    - statusUser: statusUser
+    - tokenConfirmacao: String
+    - tokenRecuperacaoSenha: String
+    - dataExpiracaoTokenConfirmacao: LocalDateTime
+    - dataExpiracaoTokenRecuperacao: LocalDateTime
+    - interesses: Set<Modalidade>
+    + isEnabled: boolean
+    + isAccountNonLocked: boolean
+    + isAccountNonExpired: boolean
+    + isCredentialsNonExpired: boolean
+}
+class UserRepositoryImpl <<implementation>> {
+    - entityManager: EntityManager
+    + save(User user): User
+    + existsByEmail(String email): boolean
+    + findByTokenConfirmacao(String token): Optional<User>
+    + findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now): List<User>
+    + deleteAll(List<User> users): void
+    + findByEmail(String email): Optional<User>
+    + findById(Long id): Optional<User>
+}
+class ModalidadeRepositoryImpl <<implementation>> {
+    
+}
+class EventoRepositoryImpl <<implementation>> {
+    
+}
+interface UserRepository {
+    save(User user): User
+    existsByEmail(String email): boolean
+    findByTokenConfirmacao(String token): Optional<User>
+    findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now): List<User>
+    deleteAll(List<User> users): void
+    findByEmail(String email): Optional<User>
+    findById(Long id): Optional<User>
+}
+interface ModalidadeRepository {
+    
+}
+interface EventoRepository {
+    
+}
+class EmailServiceImpl <<implementation>> {
+    - mailSender: final JavaMailSender
+    + EmailServiceImpl(JavaMailSender mailSender)
+    + sendConfirmationEmail(String to, String token, String nome): void
+}
+class JwtServiceImpl <<implementation>> {
+    - secretKey: String
+    + extractUsername(String token): String
+    + generateToken(UserDetails userDetails): String
+    + isTokenValid(String token, UserDetails userDetails): boolean
+    - isTokenExpired(String token): boolean
+    - extractExpiration(String token): Date
+    - extractClaim(String token, Function<Claims, T> claimsResolver): <T> T
+    - extractAllClaims(String token): Claims
+    - getSignInKey(): Key
+}
+class UserServiceImpl <<implementation>> {
+    - userRepository: final UserRepository
+    - passwordEncoder: final PasswordEncoder
+    - emailService: final EmailService
+    - EXPIRATION_HOURS = 24: static final int
+    - authenticationManager: final AuthenticationManager 
+    - jwtService: final JwtService
+    + UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, @Lazy AuthenticationManager authenticationManager, JwtService jwtService)
+    + registerUser(UserRegisterDTO registerDTO): void
+    + confirmUser(String token): UserResponseDTO
+    + login(UserLoginDTO loginDTO): UserLoginResponseDTO
+    + loadUserByUsername(String username): UserDetails
+    + getMyInfo(Authentication authentication): UserResponseDTO
+    - toResponseDTO(User user): UserResponseDTO
+}
+class ModalidadeServiceImpl <<implementation>> {
+    + createModalidade(String nome, String descricao, Set<User> usuariosInteressados, Set<Evento> eventos): Modalidade
+    + getAllModalidades(Pageable pageable): Page<Modalidade>
+    + getModalidadeById(@PathVariable Long id): Modalidade
+    + getModalidadeByNome(String nome): Modalidade
+    + getModalidadesByUsuarioInteressado(@PathVariable Long usuario_id): Modalidade
+    + getModalidadesByEvento(@PathVariable Long evento_id, Pageable pageable): Page<Modalidade>
+}
+class EventoServiceImpl <<implementation>> {
+    + createEvento(String nome, String descricao, LocalDate dataInicio, LocalDate dataFim, StatusEvento status, User organizador, Set<Modalidade> modalidades): Evento
+    + getAllEventos(Pageable pageable): Page<Evento>
+    + getEventoById(@PathVariable Long id): Evento
+    + getEventoByNome(String nome): Evento
+    + updateEventoTotallyById(@PathVariable Long id): EventoResponseDTO
+    + updateEventoPartiallyById(@PathVariable Long id, )
+    + deleteEventoById(@PathVariable Long id): void
+}
+class EmailService {
+    sendConfirmationEmail(String to, String token, String nome): void
+}
+class JwtService {
+    extractUsername(String token): String
+    generateToken(UserDetails userDetails): String
+    isTokenValid(String token, UserDetails userDetails): boolean
+}
+class UserService {
+    registerUser(UserRegisterDTO registerDTO): void
+    confirmUser(String token): UserResponseDTO
+    login(UserLoginDTO loginDTO): UserLoginResponseDTO
+    getMyInfo(Authentication authentication): UserResponseDTO
+}
+class ModalidadeService {
+    createModalidade(String nome, String descricao, Set<User> usuariosInteressados, Set<Evento> eventos): Modalidade
+    getAllModalidades(Pageable pageable): Page<Modalidade>
+    getModalidadeById(@PathVariable Long id): Modalidade
+    getModalidadeByNome(String nome): Modalidade
+    getModalidadesByUsuarioInteressado(@PathVariable Long usuario_id): Modalidade
+    getModalidadesByEvento(@PathVariable Long evento_id, Pageable pageable): Page<Modalidade>
+}
+class EventoService {
+    createEvento(String nome, String descricao, LocalDate dataInicio, LocalDate dataFim, StatusEvento status, User organizador, Set<Modalidade> modalidades): Evento
+    getAllEventos(Pageable pageable): Page<Evento>
+    getEventoById(@PathVariable Long id): Evento
+    getEventoByNome(String nome): Evento
+    updateEventoTotallyById(@PathVariable Long id): EventoResponseDTO
+    updateEventoPartiallyById(@PathVariable Long id, )
+    deleteEventoById(@PathVariable Long id): void
+}
+class ModelMapper {
+    + toDTO (task Task): taskDTО
+    + fromDTO(taskDTO taskDTO): Task
+}
+exception BusinessRuleException {
+    + BusinessRuleException(String message)
+}
+exception ResourceNotFoundException {
+    + ResourceNotFoundException(String message)
+}
+exception RestExceptionHandler <<Handler>>{
+    - logger = LoggerFactory.getLogger(RestExceptionHandler.class): static final Logger
+    + handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+    + handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+    + handleBusinessRule(BusinessRuleException ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+    + handleGenericException(Exception ex, HttpServletRequest request): ResponseEntity<ErrorResponse>
+}
+class JwtAuthFilter <<Filter>> {
+    - jwtService: final JwtService
+    - userDetailsService: final UserDetailsService
+    + JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService)
+    # doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain): void
+}
+
+AuthController -- UserServiceImpl
+UserController -- UserServiceImpl
+UserServiceImpl -- UserRegisterDTO
+UserServiceImpl -- UserResponseDTO
+UserServiceImpl -- UserLoginDTO
+UserServiceImpl -- UserLoginResponseDTO
+UserServiceImpl -- UserRepositoryImpl
+UserRepositoryImpl -- User
+
+ModalidadeController -- ModalidadeServiceImpl
+ModalidadeServiceImpl -- ModalidadeRequestDTO
+ModalidadeServiceImpl -- ModalidadeResponseDTO
+ModalidadeServiceImpl -- ModalidadeRepositoryImpl
+ModalidadeRepositoryImpl -- Modalidade
+
+EventoController -- EventoServiceImpl
+EventoServiceImpl -- EventoRequestDTO
+EventoServiceImpl -- EventoResponseDTO
+EventoServiceImpl -- EventoRepositoryImpl
+EventoRepositoryImpl -- Evento
+
+EmailServiceImpl -- UserServiceImpl
+JwtServiceImpl -- JwtAuthFilter
+
+UserRepository <|.. UserRepositoryImpl
+ModalidadeRepository <|.. ModalidadeRepositoryImpl
+EventoRepository <|.. EventoRepositoryImpl
+EmailService <|.. EmailServiceImpl
+JwtService <|.. JwtServiceImpl
+UserService <|.. UserServiceImpl
+ModalidadeService <|.. ModalidadeServiceImpl
+EventoService <|.. EventoServiceImpl
+User ..> PerfilUser
+User ..> StatusUser
+Evento ..> StatusEvento
+
+User "many" -- "many" Modalidade
+Evento "many" -- "many" Modalidade
+
+@enduml

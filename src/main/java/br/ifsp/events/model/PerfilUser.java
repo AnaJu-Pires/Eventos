@@ -1,7 +1,9 @@
 package br.ifsp.events.model;
 
 public enum PerfilUser {
-    ROLE_ADMIN,
-    ROLE_GESTOR_EVENTOS,
-    ROLE_ALUNO 
+    ADMIN,
+    GESTOR_EVENTOS,
+    ALUNO,
+    FUNCIONARIO,
+    COMISSAO_TECNICA
 }
