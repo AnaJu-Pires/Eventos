@@ -1,7 +1,13 @@
 package br.ifsp.events.model;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,11 +26,6 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import java.util.Collection;
-import java.util.List;
 
 
 @Entity
@@ -68,9 +69,9 @@ public class User implements UserDetails {
     
     @ManyToMany(fetch = FetchType.LAZY) //Lazy carrega so se for necessario
     @JoinTable(
-        name = "usuario_interesses",
-        joinColumns = @JoinColumn(name = "usuario_id"),
-        inverseJoinColumns = @JoinColumn(name = "modalidade_id")
+        name = "usuarioInteresses",
+        joinColumns = @JoinColumn(name = "usuarioId"),
+        inverseJoinColumns = @JoinColumn(name = "modalidadeId")
     )
     private Set<Modalidade> interesses;
 

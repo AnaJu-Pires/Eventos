@@ -94,6 +94,13 @@ public class EventServiceImpl implements EventService {
         }
 
         // 3. Validação de segurança: Verifica se o usuário logado é o organizador do evento.
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User organizadorLogado = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessRuleException("Organizador não encontrado."));
+
+        if (!Objects.equals(evento.getOrganizador().getId(), organizadorLogado.getId())) {
+            throw new BusinessRuleException("Apenas o organizador do evento pode editá-lo.");
+        }
         validateOrganizerOwnership(evento);
 
         // 4. Validação da data
@@ -122,6 +129,12 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
+    public void delete(Long id) {
+        // 1. Encontra o evento no banco de dados.
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
+
+        // 2. Validação de segurança: Apenas o organizador do evento pode deletá-lo ou cancelá-lo.
     public EventResponseDTO patch(Long id, EventPatchDTO eventPatchDTO) {
         // 1. Encontra o evento no banco de dados. Se não existir, lança exceção.
         Evento evento = eventoRepository.findById(id)
@@ -178,6 +191,8 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new BusinessRuleException("Organizador não encontrado."));
 
         if (!Objects.equals(evento.getOrganizador().getId(), organizadorLogado.getId())) {
+            throw new BusinessRuleException("Apenas o organizador do evento pode removê-lo ou cancelá-lo.");
+        }
             throw new BusinessRuleException("Apenas o organizador do evento pode editá-lo.");
         }
     }
