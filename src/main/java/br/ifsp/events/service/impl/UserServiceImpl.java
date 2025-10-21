@@ -19,7 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.ifsp.events.dto.modalidade.ModalidadeDTO;
+import br.ifsp.events.dto.modalidade.ModalidadeRequestDTO;
 import br.ifsp.events.dto.user.UserInteresseResponseDTO;
 import br.ifsp.events.dto.user.UserInteresseUpdateDTO;
 import br.ifsp.events.dto.user.UserLoginDTO;
@@ -196,12 +196,12 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
         
-        Set<ModalidadeDTO> interessesDTO = user.getInteresses()
+        Set<ModalidadeRequestDTO> interessesDTO = user.getInteresses()
             .stream()
-            .map(modalidade -> modelMapper.map(modalidade, ModalidadeDTO.class))
+            .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
             .collect(Collectors.toSet());
 
-        List<ModalidadeDTO> interessesList = new ArrayList<>(interessesDTO);
+        List<ModalidadeRequestDTO> interessesList = new ArrayList<>(interessesDTO);
         return new UserInteresseResponseDTO(interessesList);
     }
 
@@ -221,12 +221,12 @@ public class UserServiceImpl implements UserService {
         user.setInteresses(modalidades);
         User updatedUser = userRepository.save(user);
 
-        Set<ModalidadeDTO> interessesAtualizadosDTO = updatedUser.getInteresses()
+        Set<ModalidadeRequestDTO> interessesAtualizadosDTO = updatedUser.getInteresses()
             .stream()
-            .map(modalidade -> modelMapper.map(modalidade, ModalidadeDTO.class))
+            .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
             .collect(Collectors.toSet());
 
-        List<ModalidadeDTO> interessesList = new ArrayList<>(interessesAtualizadosDTO);
+        List<ModalidadeRequestDTO> interessesList = new ArrayList<>(interessesAtualizadosDTO);
         return new UserInteresseResponseDTO(interessesList);
     }
 

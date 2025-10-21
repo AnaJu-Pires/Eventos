@@ -9,7 +9,10 @@ public interface EventService {
 
     EventResponseDTO update(Long id, EventRequestDTO eventRequestDTO);
 
+    void delete(Long id);
+
     EventResponseDTO patch(Long id, EventPatchDTO eventPatchDTO);
 
-    void delete(Long id);
+    
+
 }

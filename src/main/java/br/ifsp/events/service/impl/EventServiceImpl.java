@@ -127,14 +127,6 @@ public class EventServiceImpl implements EventService {
         return toResponseDTO(updatedEvento);
     }
 
-    @Override
-    @Transactional
-    public void delete(Long id) {
-        // 1. Encontra o evento no banco de dados.
-        Evento evento = eventoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
-
-        // 2. Validação de segurança: Apenas o organizador do evento pode deletá-lo ou cancelá-lo.
     public EventResponseDTO patch(Long id, EventPatchDTO eventPatchDTO) {
         // 1. Encontra o evento no banco de dados. Se não existir, lança exceção.
         Evento evento = eventoRepository.findById(id)
@@ -195,7 +187,7 @@ public class EventServiceImpl implements EventService {
         }
             throw new BusinessRuleException("Apenas o organizador do evento pode editá-lo.");
         }
-    }
+
 
 
     @Override
