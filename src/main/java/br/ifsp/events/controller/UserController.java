@@ -1,9 +1,29 @@
 package br.ifsp.events.controller;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import br.ifsp.events.dto.ErrorResponse;
+import br.ifsp.events.dto.user.UserInteresseResponseDTO;
+import br.ifsp.events.dto.user.UserInteresseUpdateDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.dto.user.UserRoleUpdateDTO;
+import br.ifsp.events.exception.CsvGenerationException;
+import br.ifsp.events.model.User;
 import br.ifsp.events.service.UserService;
+import br.ifsp.events.util.CsvGenerator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,11 +32,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -59,4 +76,40 @@ public class UserController {
         UserResponseDTO updatedUser = userService.updateUserRole(id, roleUpdateDTO);
         return ResponseEntity.ok(updatedUser);
     }
+
+    @Operation(summary = "Busca as modalidades de interesse do usuário logado")
+    @GetMapping("/me/interesses")
+    public ResponseEntity<UserInteresseResponseDTO> getMeusInteresses(Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        UserInteresseResponseDTO responseDTO = userService.getUserInteresses(user.getId());
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @Operation(summary = "Atualiza as modalidades de interesse do usuário logado")
+    @PatchMapping("/me/interesses")
+    public ResponseEntity<UserInteresseResponseDTO> atualizarMeusInteresses(
+            Authentication authentication,
+            @Valid @RequestBody UserInteresseUpdateDTO interessesDTO) {
+        User user = (User) authentication.getPrincipal();
+        UserInteresseResponseDTO responseDTO = userService.updateUserInteresses(user.getId(), interessesDTO);
+        return ResponseEntity.ok(responseDTO);
+    }
+
+    @GetMapping("/perfis/csv")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void downloadPerfisUsuariosCsv(HttpServletResponse response) {
+        response.setContentType("text/csv");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"perfis_usuarios.csv\"");
+
+        List<UserResponseDTO> userProfiles = userService.listarPerfisUsuarios();
+
+        try (PrintWriter writer = response.getWriter()) {
+            CsvGenerator.generateUserProfilesCsv(userProfiles, writer);
+            writer.flush();
+        } catch (IOException e) {
+            throw new CsvGenerationException("Erro ao gerar o arquivo CSV de perfis de usuários.");
+        }
+    }
+
 }

@@ -8,12 +8,18 @@ import br.ifsp.events.model.StatusUser;
 import br.ifsp.events.model.User;
 
 public interface UserRepository {
+    
     /**
      * salva ou atualiza um usuário
      * @param user
      * @return usuário salvo
      */
     User save(User user);
+
+    /**
+     * encontra todos os usuários
+     */
+    List<User> findAll();
 
     /**
      * verifica se já existe um usuário com o e-mail fornecido

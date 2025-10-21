@@ -54,14 +54,14 @@ public class Evento {
 
     @NotNull(message = "O organizador do evento é obrigatório")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organizador_id")
+    @JoinColumn(name = "organizadorId")
     private User organizador;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "evento_modalidades",
-        joinColumns = @JoinColumn(name = "evento_id"),
-        inverseJoinColumns = @JoinColumn(name = "modalidade_id")
+        name = "eventoModalidades",
+        joinColumns = @JoinColumn(name = "eventoId"),
+        inverseJoinColumns = @JoinColumn(name = "modalidadeId")
     )
     private Set<Modalidade> modalidades;
 }
