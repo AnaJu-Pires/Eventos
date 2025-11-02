@@ -1,3 +1,6 @@
+
+# copia este arquivo e renomeia a cópia para "docker-compose.yml"
+
 version: "3.9"
 
 services:
@@ -6,12 +9,14 @@ services:
     container_name: events-db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      # ATENÇÃO: Defina a senha do root do MySQL
+      MYSQL_ROOT_PASSWORD: SUA_SENHA_ROOT_AQUI
       MYSQL_DATABASE: events_db
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      # ATENÇÃO: Defina o usuário e senha da aplicação
+      MYSQL_USER: SEU_USUARIO_APP_AQUI
+      MYSQL_PASSWORD: SUA_SENHA_APP_AQUI
     ports:
-      - "3307:3306"
+      - "3307:3306" 
     volumes:
       - events-db-data:/var/lib/mysql
     healthcheck:
@@ -38,10 +43,13 @@ services:
     build: .
     restart: on-failure
     environment:
+      # URL de conexão (deve usar o nome do serviço 'db')
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/events_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
+      # ATENÇÃO: Estes DEVEM SER IDÊNTICOS aos valores de MYSQL_USER e MYSQL_PASSWORD acima
+      SPRING_DATASOURCE_USERNAME: SEU_USUARIO_APP_AQUI
+      SPRING_DATASOURCE_PASSWORD: SUA_SENHA_APP_AQUI
     ports:
+      # Altere '8081' se essa porta já estiver em uso (é a mesma do application.properties)
       - "8081:8081"
     depends_on:
       db:

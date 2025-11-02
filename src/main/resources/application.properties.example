@@ -1,0 +1,33 @@
+# copia esse arquivo e renomeia a cópia para "application.properties"
+
+spring.application.name=contacts-api
+# porta do server(altere se precisar)
+server.port=8081
+
+# config do banco
+spring.datasource.url=jdbc:mysql://localhost:3306/contacts_db
+spring.datasource.username=SEU_USER
+spring.datasource.password=SUA_SENHA
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+#config jpa
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
+
+# config email
+# cria uma conta no Mailtrap.io para conseguir suas credenciais de sandbox
+# e teste o envio de e-mails
+spring.mail.host=sandbox.smtp.mailtrap.io
+spring.mail.port=2525
+spring.mail.username=seu_usuario_mailtrap
+spring.mail.password=sua_senha_mailtrap
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# config segurança jwt
+# chave para assinar os tokens.
+# gera algo assim: base64 encode simple string
+jwt.secret=CHAVE_SECRETA_JWT_EM_BASE64
