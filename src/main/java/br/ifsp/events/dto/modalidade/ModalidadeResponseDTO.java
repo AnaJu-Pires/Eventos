@@ -1,9 +1,13 @@
 package br.ifsp.events.dto.modalidade;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "DTO para representar os dados de uma Modalidade na resposta da API")
 public class ModalidadeResponseDTO {
 
