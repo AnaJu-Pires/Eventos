@@ -1,3 +1,6 @@
+
+## GALERA COLOQUEI application.properties E O docker-compose.yml NO GITIGNORE QUANDO VCS DEREM PULL ELES VAO SUMIR CRIEM OUTRO DE ACORDO COM O EX OU CLONEM O DE VCS ANTES(AGORA AO ALTERAR ELES NAO SOBE MAIS COMO MUDANÇA)
+
 # Atenção
 
 - Docker Desktop for Windows: Para gerenciar os contêineres. Importante: Durante a instalação, mantenha a opção "Use WSL 2" marcada. Link: https://docs.docker.com/desktop/setup/install/windows-install/
