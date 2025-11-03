@@ -29,4 +29,6 @@ public interface TimeRepository {
      * @return
      */
     Page<Time> findAll(Pageable pageable);
+
+    long count();
 }

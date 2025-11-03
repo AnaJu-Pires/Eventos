@@ -74,4 +74,10 @@ public class TimeRepositoryImpl implements TimeRepository {
         }
         return "";
     }
+
+    @Override
+    public long count() { 
+        String jpql = "SELECT COUNT(t) FROM Time t";
+        return entityManager.createQuery(jpql, Long.class).getSingleResult();
+    }
 }
