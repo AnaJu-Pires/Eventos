@@ -2,12 +2,15 @@ package br.ifsp.events.model;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,7 +28,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 
 @Entity
@@ -33,6 +38,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+
+@ToString(exclude = {"interesses", "timesQueParticipo"}) 
+@EqualsAndHashCode(exclude = {"interesses", "timesQueParticipo"})
 public class User implements UserDetails {
 
     @Id
@@ -49,8 +57,6 @@ public class User implements UserDetails {
 
     @NotBlank(message = "A senha é obrigatória")
     private String senha;
-
-    // Aqui eu tava pensando que não precisa de validações porque nao é o usuário que coloca, mas nao sei...
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -67,13 +73,17 @@ public class User implements UserDetails {
 
     private LocalDateTime dataExpiracaoTokenRecuperacao;
     
-    @ManyToMany(fetch = FetchType.LAZY) //Lazy carrega so se for necessario
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "usuarioInteresses",
         joinColumns = @JoinColumn(name = "usuarioId"),
         inverseJoinColumns = @JoinColumn(name = "modalidadeId")
     )
-    private Set<Modalidade> interesses;
+    private Set<Modalidade> interesses = new HashSet<>();
+    @ManyToMany(mappedBy = "membros", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Set<Time> timesQueParticipo = new HashSet<>();
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

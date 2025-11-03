@@ -15,4 +15,5 @@ public interface ModalidadeRepository extends JpaRepository<Modalidade, Long> {
 
     Set<Modalidade> findByIdIn(Set<Long> ids);
     
+    long count();
 }
