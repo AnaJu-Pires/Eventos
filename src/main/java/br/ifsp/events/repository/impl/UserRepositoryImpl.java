@@ -97,4 +97,10 @@ public class UserRepositoryImpl implements UserRepository {
     public Optional<User> findById(Long id) {
         return Optional.ofNullable(entityManager.find(User.class, id));
     }
+
+    @Override
+    public long count() {
+        String jpql = "SELECT COUNT(u) FROM User u";
+        return entityManager.createQuery(jpql, Long.class).getSingleResult();
+    }
 }

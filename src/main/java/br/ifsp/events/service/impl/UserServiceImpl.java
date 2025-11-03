@@ -211,7 +211,6 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
         
-        // Busca as Modalidades válidas pelos IDs informados
         Set<Modalidade> modalidades = interessesDTO.getModalidadeIds()
             .stream()
             .map(id -> modalidadeRepository.findById(id)

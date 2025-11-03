@@ -1,5 +1,6 @@
 package br.ifsp.events.service;
 
+import br.ifsp.events.dto.convite.ConviteCreateDTO;
 import br.ifsp.events.dto.time.CapitaoTransferDTO;
 import br.ifsp.events.dto.time.TimeCreateDTO;
 import br.ifsp.events.dto.time.TimeUpdateDTO;
@@ -52,4 +53,18 @@ public interface TimeService {
      * @return
      */
     Page<TimeResponseDTO> listAllTimes(Pageable pageable);
+
+    /**
+     * @param timeId
+     * @param createDTO
+     * @param auth
+     */
+    void convidarMembro(Long timeId, ConviteCreateDTO createDTO, Authentication auth);
+
+    /**
+     * @param timeId
+     * @param userId
+     * @param auth
+     */
+    void removerMembro(Long timeId, Long userId, Authentication auth);
 }

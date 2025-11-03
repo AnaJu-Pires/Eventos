@@ -5,6 +5,7 @@ import br.ifsp.events.dto.time.TimeCreateDTO;
 import br.ifsp.events.dto.time.TimeUpdateDTO;
 import br.ifsp.events.dto.time.TimeResponseDTO;
 import br.ifsp.events.dto.ErrorResponse;
+import br.ifsp.events.dto.convite.ConviteCreateDTO;
 import br.ifsp.events.service.TimeService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -131,5 +132,45 @@ public class TimeController {
             @Parameter(hidden = true) Pageable pageable) {
         
         return ResponseEntity.ok(timeService.listAllTimes(pageable));
+    }
+
+    @Operation(summary = "Convida um usuário para um time",
+               description = "O capitão do time envia um convite para o e-mail de um usuário.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Convite enviado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Regra de negócio violada (ex: usuário já é membro, convite já pendente)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Acesso negado. Apenas o capitão do time pode realizar esta ação."),
+        @ApiResponse(responseCode = "404", description = "Time ou usuário a ser convidado não encontrado",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/{timeId}/convites")
+    public ResponseEntity<Void> convidarMembro(
+            @Parameter(description = "ID do time que está convidando") @PathVariable Long timeId,
+            @RequestBody @Valid ConviteCreateDTO createDTO,
+            Authentication authentication) {
+        
+        timeService.convidarMembro(timeId, createDTO, authentication);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "Remove um membro de um time",
+               description = "O capitão do time remove um usuário da lista de membros.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Membro removido com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Regra de negócio violada (ex: capitão tentando se remover)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Acesso negado. Apenas o capitão do time pode realizar esta ação."),
+        @ApiResponse(responseCode = "404", description = "Time ou membro não encontrado",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/{timeId}/membros/{userId}")
+    public ResponseEntity<Void> removerMembro(
+            @Parameter(description = "ID do time") @PathVariable Long timeId,
+            @Parameter(description = "ID do usuário a ser removido") @PathVariable Long userId,
+            Authentication authentication) {
+        
+        timeService.removerMembro(timeId, userId, authentication);
+        return ResponseEntity.noContent().build();
     }
 }

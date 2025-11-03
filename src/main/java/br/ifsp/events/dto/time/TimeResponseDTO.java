@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,6 @@ public class TimeResponseDTO {
     private UserResponseDTO capitao;
     @Schema(description = "Modalidade do time")
     private ModalidadeResponseDTO modalidade;
+    @Schema(description = "Membros do time")
+    private Set<UserResponseDTO> membros;
 }

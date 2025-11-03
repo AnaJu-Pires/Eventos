@@ -62,4 +62,6 @@ public interface UserRepository {
      * @return o usuário, se encontrado
      */
     Optional<User> findById(Long id);
+
+    long count();
 }

@@ -8,14 +8,16 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import java.util.Set;
+import java.util.HashSet;
 
 @Entity
 @Table(name = "times")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode
+@ToString(exclude = {"modalidade", "membros"}) 
+@EqualsAndHashCode(exclude = {"modalidade", "membros"})
 public class Time {
 
     @Id
@@ -28,11 +30,19 @@ public class Time {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "capitao_id", nullable = false)
+    @JoinColumn(name = "capitaoId", nullable = false)
     private User capitao;
 
     @NotNull(message = "A modalidade é obrigatória na criação do time")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "modalidade_id", nullable = false, updatable = false)
+    @JoinColumn(name = "modalidadeId", nullable = false, updatable = false)
     private Modalidade modalidade;
+
+    @ManyToMany
+    @JoinTable(
+        name = "timeMembros",
+        joinColumns = @JoinColumn(name = "timeId"),
+        inverseJoinColumns = @JoinColumn(name = "usuarioId")
+    )
+    private Set<User> membros = new HashSet<>();
 }
