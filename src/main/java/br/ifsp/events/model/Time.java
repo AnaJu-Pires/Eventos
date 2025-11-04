@@ -1,6 +1,23 @@
 package br.ifsp.events.model;
 
-import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -8,8 +25,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import java.util.Set;
-import java.util.HashSet;
 
 @Entity
 @Table(name = "times")
@@ -45,4 +60,8 @@ public class Time {
         inverseJoinColumns = @JoinColumn(name = "usuarioId")
     )
     private Set<User> membros = new HashSet<>();
+
+    @OneToMany(mappedBy = "time", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Set<Inscricao> inscricoes;
 }
