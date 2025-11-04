@@ -65,7 +65,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void registerUser(UserRegisterDTO registerDTO) {
-
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new BusinessRuleException("Este email já está em uso.");
         }
@@ -141,10 +140,6 @@ public class UserServiceImpl implements UserService {
         return toResponseDTO(user);
     }
 
-    //regras de negócio:
-    //funcionario->gestor_eventos, admin, comissao_tecnica
-    //aluno->comissao_tecnica
-    //aluno nao pode ser funcionario nem vice versa
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponseDTO updateUserRole(Long userId, UserRoleUpdateDTO roleUpdateDTO) {
@@ -152,7 +147,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
 
         PerfilUser newRole = roleUpdateDTO.getPerfilUser();
-
+        
         if (newRole == PerfilUser.ADMIN || newRole == PerfilUser.GESTOR_EVENTOS) {
             if (!userToUpdate.getEmail().endsWith("@ifsp.edu.br")) {
                 throw new BusinessRuleException("Apenas funcionários podem ser atribuídos como Administrador ou Gestor de Eventos.");
@@ -180,13 +175,9 @@ public class UserServiceImpl implements UserService {
         if (usuarios.isEmpty()) {
             throw new ResourceNotFoundException("Nenhum Usuário encontrado.");
         }
+        
         return usuarios.stream()
-                .map(u -> new UserResponseDTO(
-                        u.getId(),
-                        u.getNome(),
-                        u.getEmail(),
-                        u.getPerfilUser()
-                ))
+                .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -219,7 +210,6 @@ public class UserServiceImpl implements UserService {
 
         user.setInteresses(modalidades);
         User updatedUser = userRepository.save(user);
-
         Set<ModalidadeRequestDTO> interessesAtualizadosDTO = updatedUser.getInteresses()
             .stream()
             .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
@@ -230,11 +220,6 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponseDTO toResponseDTO(User user) {
-        return new UserResponseDTO(
-            user.getId(),
-            user.getNome(),
-            user.getEmail(),
-            user.getPerfilUser()
-        );
+        return modelMapper.map(user, UserResponseDTO.class);
     }
 }
