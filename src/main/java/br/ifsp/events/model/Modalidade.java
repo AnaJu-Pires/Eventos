@@ -4,12 +4,14 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -24,8 +26,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 //evita stackoverflow impedindo loop
-@ToString(exclude = {"usuariosInteressados", "eventos"})
-@EqualsAndHashCode(exclude = {"usuariosInteressados", "eventos"})
+@ToString(exclude = {"usuariosInteressados", "eventoModalidades"})
+@EqualsAndHashCode(exclude = {"usuariosInteressados", "eventoModalidades"})
 public class Modalidade {
 
     @Id
@@ -42,8 +44,8 @@ public class Modalidade {
     @JsonIgnore //evitar loop
     private Set<User> usuariosInteressados;
 
-    @ManyToMany(mappedBy = "modalidades")
-    @JsonIgnore //evitar loop
-    private Set<Evento> eventos;
+    @OneToMany(mappedBy = "modalidade", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<EventoModalidade> eventoModalidades;
     
 }

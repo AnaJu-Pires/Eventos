@@ -18,6 +18,7 @@ import br.ifsp.events.dto.event.EventPatchDTO;
 import br.ifsp.events.dto.event.EventRequestDTO;
 import br.ifsp.events.dto.event.EventResponseDTO;
 import br.ifsp.events.service.EventService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 @RestController
@@ -30,6 +31,7 @@ public class EventController {
         this.eventService = eventService;
     }
 
+    @Operation(summary = "Cria um novo evento", description = "Cadastra um novo evento no sistema.")
     @PostMapping
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> create(@RequestBody @Valid EventRequestDTO eventRequestDTO) {
@@ -44,6 +46,7 @@ public class EventController {
         return ResponseEntity.created(location).body(createdEvent);
     }
 
+    @Operation(summary = "Atualiza um evento", description = "Atualiza todos os dados de um evento existente.")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> update(@PathVariable Long id, @RequestBody @Valid EventRequestDTO eventRequestDTO) {
@@ -51,6 +54,7 @@ public class EventController {
         return ResponseEntity.ok(updatedEvent);
     }
 
+    @Operation(summary = "Atualiza parcialmente um evento", description = "Atualiza um ou mais campos de um evento existente.")
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> patch(@PathVariable Long id, @RequestBody EventPatchDTO eventPatchDTO) {
@@ -58,6 +62,7 @@ public class EventController {
         return ResponseEntity.ok(patchedEvent);
     }
 
+    @Operation(summary = "Exclui um evento", description = "Remove um evento do sistema.")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
