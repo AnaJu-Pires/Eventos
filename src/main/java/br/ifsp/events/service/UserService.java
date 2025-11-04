@@ -21,7 +21,6 @@ public interface UserService extends UserDetailsService {
     void registerUser(UserRegisterDTO registerDTO);
     
     /**
-     * ativa o usuario se o token for valido e nao tiver vencido
      * @param token
      * @return
      */

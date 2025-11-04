@@ -31,3 +31,6 @@ spring.mail.properties.mail.smtp.starttls.enable=true
 # chave para assinar os tokens.
 # gera algo assim: base64 encode simple string
 jwt.secret=CHAVE_SECRETA_JWT_EM_BASE64
+
+#adicione isso no seu application properties:
+jwt.expiration-ms=86400000

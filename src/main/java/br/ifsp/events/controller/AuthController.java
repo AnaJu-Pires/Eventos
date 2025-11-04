@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import br.ifsp.events.dto.MessageResponseDTO;
 
 @RestController
 @RequestMapping("/auth")
@@ -30,14 +31,16 @@ public class AuthController {
 
     @Operation(summary = "Inicia o registro de um novo usuário", description = "Recebe os dados de cadastro, cria um usuário inativo e dispara o envio de um e-mail de confirmação.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Solicitação de registro processada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos (ex: e-mail já em uso, formato de e-mail incorreto)",
+        @ApiResponse(responseCode = "200", description = "Solicitação de registro processada com sucesso", 
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = MessageResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos...",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody @Valid UserRegisterDTO registerDTO) {
+    public ResponseEntity<MessageResponseDTO> register(@RequestBody @Valid UserRegisterDTO registerDTO) {
         userService.registerUser(registerDTO);
-        return ResponseEntity.ok("Solicitação de cadastro criada com sucesso. Um e-mail de confirmação foi enviado.");
+        var response = new MessageResponseDTO("Solicitação de cadastro criada com sucesso. Um e-mail de confirmação foi enviado.");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Confirma o registro de um usuário", description = "Valida o token recebido por e-mail e, se válido, ativa a conta do usuário.")
