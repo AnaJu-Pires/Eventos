@@ -1,11 +1,12 @@
 package br.ifsp.events.service.impl;
 
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +28,7 @@ import br.ifsp.events.dto.user.UserRegisterDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.dto.user.UserRoleUpdateDTO;
 import br.ifsp.events.exception.BusinessRuleException;
+import br.ifsp.events.exception.CsvGenerationException;
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Modalidade;
 import br.ifsp.events.model.PerfilUser;
@@ -37,6 +39,7 @@ import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.EmailService;
 import br.ifsp.events.service.JwtService;
 import br.ifsp.events.service.UserService;
+import br.ifsp.events.util.CsvGenerator;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -201,6 +204,21 @@ public class UserServiceImpl implements UserService {
             .collect(Collectors.toList());
 
         return new UserInteresseResponseDTO(interessesList);
+    }
+
+    @Override
+    public void writeUsersCsv(Writer writer) {
+        List<UserResponseDTO> userProfiles = this.listarPerfisUsuarios();
+        
+        PrintWriter printWriter = new PrintWriter(writer);
+
+        CsvGenerator.generateUserProfilesCsv(userProfiles, printWriter);
+
+        printWriter.flush();
+
+        if (printWriter.checkError()) {
+            throw new CsvGenerationException("Erro ao escrever dados no arquivo CSV.");
+        }
     }
 
     private UserResponseDTO toResponseDTO(User user) {

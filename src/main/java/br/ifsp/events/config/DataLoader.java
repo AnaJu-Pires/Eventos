@@ -6,7 +6,7 @@ import br.ifsp.events.model.StatusUser;
 import br.ifsp.events.model.Time;
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.ModalidadeRepository;
-import br.ifsp.events.repository.TimeRepository; // <-- 1. IMPORTAR
+import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
 
 import org.slf4j.Logger;
