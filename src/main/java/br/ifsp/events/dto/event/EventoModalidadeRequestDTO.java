@@ -1,5 +1,7 @@
 package br.ifsp.events.dto.event;
 
+import java.time.LocalDate;
+
 import br.ifsp.events.model.FormatoEventoModalidade;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,8 +17,10 @@ public class EventoModalidadeRequestDTO {
     private Long modalidadeId;
 
     private int maxTimes;
-    private int minJogadoresPorTime;
-    private int maxJogadoresPorTime;
+
+    @NotNull(message = "A data de fim de inscrição é obrigatória")
+    private LocalDate dataFimInscricao;
+    
 
     @NotNull(message = "O formato é obrigatório")
     private FormatoEventoModalidade formatoEventoModalidade;
