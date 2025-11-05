@@ -1,6 +1,7 @@
 package br.ifsp.events.service.impl;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,16 +16,22 @@ import br.ifsp.events.dto.event.EventResponseDTO;
 import br.ifsp.events.dto.event.EventoModalidadePatchDTO;
 import br.ifsp.events.dto.event.EventoModalidadeRequestDTO;
 import br.ifsp.events.dto.event.EventoModalidadeResponseDTO;
+import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
 import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Evento;
 import br.ifsp.events.model.EventoModalidade;
+import br.ifsp.events.model.Inscricao;
 import br.ifsp.events.model.Modalidade;
 import br.ifsp.events.model.StatusEvento;
+import br.ifsp.events.model.StatusInscricao;
+import br.ifsp.events.model.Time;
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.EventoModalidadeRepository;
 import br.ifsp.events.repository.EventoRepository;
+import br.ifsp.events.repository.InscricaoRepository;
 import br.ifsp.events.repository.ModalidadeRepository;
+import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.EventService;
 
@@ -35,15 +42,21 @@ public class EventServiceImpl implements EventService {
     private final ModalidadeRepository modalidadeRepository;
     private final EventoModalidadeRepository eventoModalidadeRepository;
     private final UserRepository userRepository;
+    private final TimeRepository timeRepository;
+    private final InscricaoRepository inscricaoRepository;
 
     public EventServiceImpl(EventoRepository eventoRepository,
                             ModalidadeRepository modalidadeRepository,
                             EventoModalidadeRepository eventoModalidadeRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            TimeRepository timeRepository,
+                            InscricaoRepository inscricaoRepository) {
         this.eventoRepository = eventoRepository;
         this.modalidadeRepository = modalidadeRepository;
         this.eventoModalidadeRepository = eventoModalidadeRepository;
         this.userRepository = userRepository;
+        this.timeRepository = timeRepository;
+        this.inscricaoRepository = inscricaoRepository;
     }
 
     @Override
@@ -80,7 +93,7 @@ public class EventServiceImpl implements EventService {
         validateOrganizerOwnership(evento);
 
         if (evento.getStatus() != StatusEvento.PLANEJADO) {
-            throw new BusinessRuleException("Só é possível editar eventos com status PLANEJADO.");
+            throw new BusinessRuleException("Só é possível editar eventos que ainda não iniciaram (status PLANEJADO).");
         }
 
         validateDates(eventRequestDTO.getDataInicio(), eventRequestDTO.getDataFim());
@@ -107,7 +120,7 @@ public class EventServiceImpl implements EventService {
         validateOrganizerOwnership(evento);
 
         if (evento.getStatus() != StatusEvento.PLANEJADO) {
-            throw new BusinessRuleException("Só é possível editar eventos com status PLANEJADO.");
+            throw new BusinessRuleException("Só é possível editar eventos que ainda não iniciaram (status PLANEJADO).");
         }
 
         eventPatchDTO.getNome().ifPresent(evento::setNome);
@@ -121,33 +134,33 @@ public class EventServiceImpl implements EventService {
         evento.setDataFim(novaDataFim);
 
         eventPatchDTO.getModalidades().ifPresent(modalidadesDTO -> {
-            Set<EventoModalidade> eventoModalidades = evento.getEventoModalidades();
+        Set<EventoModalidade> eventoModalidades = evento.getEventoModalidades();
 
-            for (EventoModalidadePatchDTO dto : modalidadesDTO) {
-                Modalidade modalidade = modalidadeRepository.findById(dto.getModalidadeId())
-                        .orElseThrow(() -> new BusinessRuleException(
-                                "Modalidade com ID " + dto.getModalidadeId() + " não encontrada."));
+        for (EventoModalidadePatchDTO dto : modalidadesDTO) {
+            Modalidade modalidade = modalidadeRepository.findById(dto.getModalidadeId())
+                    .orElseThrow(() -> new BusinessRuleException(
+                            "Modalidade com ID " + dto.getModalidadeId() + " não encontrada."));
 
-                EventoModalidade em = eventoModalidades.stream()
-                        .filter(existing -> existing.getModalidade().getId().equals(dto.getModalidadeId()))
-                        .findFirst()
-                        .orElseGet(() -> {
-                            EventoModalidade novo = new EventoModalidade();
-                            novo.setEvento(evento);
-                            novo.setModalidade(modalidade);
-                            eventoModalidades.add(novo);
-                            return novo;
-                        });
+            EventoModalidade em = eventoModalidades.stream()
+                    .filter(existing -> existing.getModalidade().getId().equals(dto.getModalidadeId()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        EventoModalidade novo = new EventoModalidade();
+                        novo.setEvento(evento);
+                        novo.setModalidade(modalidade);
+                        eventoModalidades.add(novo);
+                        return novo;
+                    });
 
-                if (dto.getMaxTimes() != null) em.setMaxTimes(dto.getMaxTimes());
-                if (dto.getMinJogadoresPorTime() != null) em.setMinJogadoresPorTime(dto.getMinJogadoresPorTime());
-                if (dto.getMaxJogadoresPorTime() != null) em.setMaxJogadoresPorTime(dto.getMaxJogadoresPorTime());
-                if (dto.getFormatoEventoModalidade() != null) em.setFormatoEventoModalidade(dto.getFormatoEventoModalidade());
-            }
+            if (dto.getMaxTimes() != 0) em.setMaxTimes(dto.getMaxTimes());
+            if (dto.getDataFimInscricao() != null) em.setDataFimInscricao(dto.getDataFimInscricao());
+            if (dto.getFormatoEventoModalidade() != null) em.setFormatoEventoModalidade(dto.getFormatoEventoModalidade());
+        }
 
-            eventoModalidadeRepository.saveAll(eventoModalidades);
-            evento.setEventoModalidades(eventoModalidades);
-        });
+        eventoModalidadeRepository.saveAll(eventoModalidades);
+        evento.setEventoModalidades(eventoModalidades);
+    });
+
 
         Evento patched = eventoRepository.save(evento);
         return toResponseDTO(patched);
@@ -170,6 +183,66 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    @Override
+    @Transactional
+    public InscricaoResponseDTO inscreverTime(Long eventoId, Long timeId) {
+        Evento evento = eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + eventoId + " não encontrado."));
+
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User userLogado = userRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new BusinessRuleException("Usuário não encontrado."));
+
+        Time time = timeRepository.findById(timeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Time com ID " + timeId + " não encontrado."));
+
+        if (!time.getCapitao().getId().equals(userLogado.getId())) {
+            throw new BusinessRuleException("Apenas o capitão do time pode inscrever este time.");
+        }
+
+        EventoModalidade eventoModalidade = evento.getEventoModalidades().stream()
+                .filter(em -> em.getModalidade().getId().equals(time.getModalidade().getId()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessRuleException(
+                        "A modalidade '" + time.getModalidade().getNome() + "' do seu time não é oferecida neste evento."));
+
+        validateRegrasInscricao(eventoModalidade, timeId);
+
+        Inscricao novaInscricao = new Inscricao();
+        novaInscricao.setTime(time);
+        novaInscricao.setEventoModalidade(eventoModalidade);
+        novaInscricao.setStatusInscricao(StatusInscricao.PENDENTE);
+
+        Inscricao savedInscricao = inscricaoRepository.save(novaInscricao);
+
+        return toInscricaoResponseDTO(savedInscricao);
+    }
+
+    private void validateRegrasInscricao(EventoModalidade eventoModalidade, Long timeId) {
+        LocalDate hoje = LocalDate.now();
+
+        // 1. Validar Data Limite
+        if (hoje.isAfter(eventoModalidade.getDataFimInscricao())) {
+            throw new BusinessRuleException("A data limite para inscrição (" + eventoModalidade.getDataFimInscricao() + ") já passou.");
+        }
+
+        // 2. Validar Nº Máximo de Times
+        long timesInscritos = inscricaoRepository.countByEventoModalidadeIdAndStatusInscricaoIn(
+                eventoModalidade.getId(),
+                List.of(StatusInscricao.PENDENTE, StatusInscricao.APROVADA)
+        );
+
+        if (timesInscritos >= eventoModalidade.getMaxTimes()) {
+            throw new BusinessRuleException("O número máximo de times (" + eventoModalidade.getMaxTimes() + ") para esta modalidade já foi atingido.");
+        }
+
+        // 3. Validar Duplicidade
+        boolean jaInscrito = inscricaoRepository.existsByTimeIdAndEventoModalidadeId(timeId, eventoModalidade.getId());
+        if (jaInscrito) {
+            throw new BusinessRuleException("Seu time já está inscrito nesta modalidade.");
+        }
+    }
+
     private Set<EventoModalidade> buildEventoModalidades(Set<EventoModalidadeRequestDTO> modalidadesDTO, Evento evento) {
         return modalidadesDTO.stream().map(dto -> {
             Modalidade modalidade = modalidadeRepository.findById(dto.getModalidadeId())
@@ -179,8 +252,7 @@ public class EventServiceImpl implements EventService {
             em.setModalidade(modalidade);
             em.setFormatoEventoModalidade(dto.getFormatoEventoModalidade());
             em.setMaxTimes(dto.getMaxTimes());
-            em.setMinJogadoresPorTime(dto.getMinJogadoresPorTime());
-            em.setMaxJogadoresPorTime(dto.getMaxJogadoresPorTime());
+            em.setDataFimInscricao(dto.getDataFimInscricao());
             return em;
         }).collect(Collectors.toSet());
     }
@@ -192,8 +264,7 @@ public class EventServiceImpl implements EventService {
                         .modalidadeNome(em.getModalidade().getNome())
                         .formatoEventoModalidade(em.getFormatoEventoModalidade())
                         .maxTimes(em.getMaxTimes())
-                        .minJogadoresPorTime(em.getMinJogadoresPorTime())
-                        .maxJogadoresPorTime(em.getMaxJogadoresPorTime())
+                        .dataFimInscricao(em.getDataFimInscricao())
                         .build())
                 .collect(Collectors.toSet());
 
@@ -223,5 +294,15 @@ public class EventServiceImpl implements EventService {
         if (fim.isBefore(inicio)) {
             throw new BusinessRuleException("A data de fim não pode ser anterior à data de início.");
         }
+    }
+
+    private InscricaoResponseDTO toInscricaoResponseDTO(Inscricao inscricao) {
+        return InscricaoResponseDTO.builder()
+                .id(inscricao.getId())
+                .nomeTime(inscricao.getTime().getNome())
+                .nomeEvento(inscricao.getEventoModalidade().getEvento().getNome())
+                .nomeModalidade(inscricao.getEventoModalidade().getModalidade().getNome())
+                .statusInscricao(inscricao.getStatusInscricao())
+                .build();
     }
 }
