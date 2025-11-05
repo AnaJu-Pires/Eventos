@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.beans.factory.annotation.Autowired; // <-- REMOVIDO
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,11 +21,13 @@ import br.ifsp.events.service.ModalidadeService;
 @Service
 public class ModalidadeServiceImpl implements ModalidadeService {
 
-    @Autowired
-    private ModalidadeRepository modalidadeRepository;
+    private final ModalidadeRepository modalidadeRepository;
+    private final ModelMapper modelMapper;
 
-    @Autowired
-    private ModelMapper modelMapper;
+    public ModalidadeServiceImpl(ModalidadeRepository modalidadeRepository, ModelMapper modelMapper) {
+        this.modalidadeRepository = modalidadeRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     @Transactional

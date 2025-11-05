@@ -1,12 +1,12 @@
 package br.ifsp.events.service.impl;
 
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +28,7 @@ import br.ifsp.events.dto.user.UserRegisterDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.dto.user.UserRoleUpdateDTO;
 import br.ifsp.events.exception.BusinessRuleException;
+import br.ifsp.events.exception.CsvGenerationException;
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Modalidade;
 import br.ifsp.events.model.PerfilUser;
@@ -38,6 +39,7 @@ import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.EmailService;
 import br.ifsp.events.service.JwtService;
 import br.ifsp.events.service.UserService;
+import br.ifsp.events.util.CsvGenerator;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -64,24 +66,16 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+    @Transactional
     public void registerUser(UserRegisterDTO registerDTO) {
-
         if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new BusinessRuleException("Este email já está em uso.");
         }
-
-        User user = new User();
-        user.setNome(registerDTO.getNome());
-        user.setEmail(registerDTO.getEmail());
+        
+        User user = modelMapper.map(registerDTO, User.class);
         user.setSenha(passwordEncoder.encode(registerDTO.getSenha()));
-
-        if(registerDTO.getEmail().contains("@ifsp.edu.br")) {
-            user.setPerfilUser(PerfilUser.FUNCIONARIO);
-        }else if(registerDTO.getEmail().contains("@aluno.ifsp.edu.br")) {
-            user.setPerfilUser(PerfilUser.ALUNO);
-        }else {
-            throw new BusinessRuleException("Domínio de email não reconhecido.");
-        } 
+        
+        user.setPerfilUser(determinePerfilFromEmail(registerDTO.getEmail()));
         user.setStatusUser(StatusUser.INATIVO);
 
         String token = UUID.randomUUID().toString();
@@ -89,11 +83,12 @@ public class UserServiceImpl implements UserService {
         user.setDataExpiracaoTokenConfirmacao(LocalDateTime.now().plusHours(EXPIRATION_HOURS));
 
         userRepository.save(user);
-    
+
         emailService.sendConfirmationEmail(user.getEmail(), token, user.getNome());
     }
 
     @Override
+    @Transactional
     public UserResponseDTO confirmUser(String token) {
 
         User user = userRepository.findByTokenConfirmacao(token)
@@ -115,16 +110,19 @@ public class UserServiceImpl implements UserService {
         return toResponseDTO(activatedUser);
     }
 
+ 
     @Override
     public UserLoginResponseDTO login(UserLoginDTO loginDTO) {
-        authenticationManager.authenticate(
+
+        Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginDTO.getEmail(),
                 loginDTO.getSenha()
             )
         );
-        
-        User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado."));
+
+        User user = (User) authentication.getPrincipal();
+
         String token = jwtService.generateToken(user);
         return new UserLoginResponseDTO(token);
     }
@@ -141,33 +139,17 @@ public class UserServiceImpl implements UserService {
         return toResponseDTO(user);
     }
 
-    //regras de negócio:
-    //funcionario->gestor_eventos, admin, comissao_tecnica
-    //aluno->comissao_tecnica
-    //aluno nao pode ser funcionario nem vice versa
     @Override
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public UserResponseDTO updateUserRole(Long userId, UserRoleUpdateDTO roleUpdateDTO) {
         User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
 
         PerfilUser newRole = roleUpdateDTO.getPerfilUser();
 
-        if (newRole == PerfilUser.ADMIN || newRole == PerfilUser.GESTOR_EVENTOS) {
-            if (!userToUpdate.getEmail().endsWith("@ifsp.edu.br")) {
-                throw new BusinessRuleException("Apenas funcionários podem ser atribuídos como Administrador ou Gestor de Eventos.");
-            }
-        }
-        if (newRole == PerfilUser.FUNCIONARIO) {
-            if (userToUpdate.getEmail().endsWith("@aluno.ifsp.edu.br")) {
-                throw new BusinessRuleException("Um usuário com e-mail de aluno não pode ser atribuído ao perfil de Funcionário.");
-            }
-        }
-        if (newRole == PerfilUser.ALUNO) {
-            if (!userToUpdate.getEmail().endsWith("@aluno.ifsp.edu.br")) {
-                throw new BusinessRuleException("Um usuário com e-mail institucional sem @aluno nao pode ser atribuído ao perfil de Aluno.");
-            }
-        }
+        validateRoleAssignment(userToUpdate, newRole);
+
         userToUpdate.setPerfilUser(newRole);
         User updatedUser = userRepository.save(userToUpdate);
         
@@ -180,13 +162,9 @@ public class UserServiceImpl implements UserService {
         if (usuarios.isEmpty()) {
             throw new ResourceNotFoundException("Nenhum Usuário encontrado.");
         }
+        
         return usuarios.stream()
-                .map(u -> new UserResponseDTO(
-                        u.getId(),
-                        u.getNome(),
-                        u.getEmail(),
-                        u.getPerfilUser()
-                ))
+                .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -195,13 +173,12 @@ public class UserServiceImpl implements UserService {
     public UserInteresseResponseDTO getUserInteresses(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
-        
-        Set<ModalidadeRequestDTO> interessesDTO = user.getInteresses()
+
+        List<ModalidadeRequestDTO> interessesList = user.getInteresses()
             .stream()
             .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
 
-        List<ModalidadeRequestDTO> interessesList = new ArrayList<>(interessesDTO);
         return new UserInteresseResponseDTO(interessesList);
     }
 
@@ -218,23 +195,63 @@ public class UserServiceImpl implements UserService {
             .collect(Collectors.toSet());
 
         user.setInteresses(modalidades);
+
         User updatedUser = userRepository.save(user);
 
-        Set<ModalidadeRequestDTO> interessesAtualizadosDTO = updatedUser.getInteresses()
+        List<ModalidadeRequestDTO> interessesList = updatedUser.getInteresses()
             .stream()
             .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
 
-        List<ModalidadeRequestDTO> interessesList = new ArrayList<>(interessesAtualizadosDTO);
         return new UserInteresseResponseDTO(interessesList);
     }
 
+    @Override
+    public void writeUsersCsv(Writer writer) {
+        List<UserResponseDTO> userProfiles = this.listarPerfisUsuarios();
+        
+        PrintWriter printWriter = new PrintWriter(writer);
+
+        CsvGenerator.generateUserProfilesCsv(userProfiles, printWriter);
+
+        printWriter.flush();
+
+        if (printWriter.checkError()) {
+            throw new CsvGenerationException("Erro ao escrever dados no arquivo CSV.");
+        }
+    }
+
     private UserResponseDTO toResponseDTO(User user) {
-        return new UserResponseDTO(
-            user.getId(),
-            user.getNome(),
-            user.getEmail(),
-            user.getPerfilUser()
-        );
+        return modelMapper.map(user, UserResponseDTO.class);
+    }
+
+    private PerfilUser determinePerfilFromEmail(String email) {
+        if (email.contains("@ifsp.edu.br")) {
+            return PerfilUser.FUNCIONARIO;
+        } else if (email.contains("@aluno.ifsp.edu.br")) {
+            return PerfilUser.ALUNO;
+        } else {
+            throw new BusinessRuleException("Domínio de email não reconhecido.");
+        }
+    }
+
+    private void validateRoleAssignment(User user, PerfilUser newRole) {
+        String email = user.getEmail();
+        
+        if (newRole == PerfilUser.ADMIN || newRole == PerfilUser.GESTOR_EVENTOS) {
+            if (!email.endsWith("@ifsp.edu.br")) {
+                throw new BusinessRuleException("Apenas funcionários podem ser atribuídos como Administrador ou Gestor de Eventos.");
+            }
+        }
+        if (newRole == PerfilUser.FUNCIONARIO) {
+            if (email.endsWith("@aluno.ifsp.edu.br")) {
+                throw new BusinessRuleException("Um usuário com e-mail de aluno não pode ser atribuído ao perfil de Funcionário.");
+            }
+        }
+        if (newRole == PerfilUser.ALUNO) {
+            if (!email.endsWith("@aluno.ifsp.edu.br") && email.contains("@ifsp.edu.br")) {
+                throw new BusinessRuleException("Um usuário com e-mail institucional sem @aluno nao pode ser atribuído ao perfil de Aluno.");
+            }
+        }
     }
 }

@@ -23,6 +23,12 @@ import br.ifsp.events.config.filter.JwtAuthFilter;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private static final String[] SWAGGER_WHITELIST = {
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/swagger-ui.html"
+    };
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -36,6 +42,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers(SWAGGER_WHITELIST).permitAll() // <-- ADICIONADO
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -47,9 +54,9 @@ public class SecurityConfig {
 
 
     @Bean
-    @SuppressWarnings("deprecation") //https://www.reddit.com/r/SpringBoot/comments/1nibutf/spring_security_implementation_needs_help/
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder());
+    @SuppressWarnings("deprecation")
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) { // <-- 1. INJEÇÃO CORRETA
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder); // <-- 2. USANDO O BEAN
         authProvider.setUserDetailsService(userDetailsService);
         return authProvider;
     }
