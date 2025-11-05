@@ -1,5 +1,7 @@
 package br.ifsp.events.model;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -38,9 +40,8 @@ public class EventoModalidade {
 
     private int maxTimes;
 
-    private int minJogadoresPorTime;
-
-    private int maxJogadoresPorTime;
+    @NotNull(message = "A data de fim de inscrição é obrigatória")
+    private LocalDate dataFimInscricao;
 
     @NotNull
     @Enumerated(EnumType.STRING)

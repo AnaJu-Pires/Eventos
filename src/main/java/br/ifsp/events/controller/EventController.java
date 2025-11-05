@@ -2,6 +2,7 @@ package br.ifsp.events.controller;
 
 import java.net.URI;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,6 +18,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.ifsp.events.dto.event.EventPatchDTO;
 import br.ifsp.events.dto.event.EventRequestDTO;
 import br.ifsp.events.dto.event.EventResponseDTO;
+import br.ifsp.events.dto.inscricao.InscricaoRequestDTO;
+import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
 import br.ifsp.events.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -68,5 +71,12 @@ public class EventController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         eventService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Inscreve um time em um evento", description = "Inscreve o time do capitão autenticado em um evento.")
+    @PostMapping("/{id}/inscrever")
+    public ResponseEntity<InscricaoResponseDTO> inscreverTime(@PathVariable("id") Long eventoId, @RequestBody @Valid InscricaoRequestDTO requestDTO) {
+        InscricaoResponseDTO inscricao = eventService.inscreverTime(eventoId, requestDTO.getTimeId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(inscricao);
     }
 }
