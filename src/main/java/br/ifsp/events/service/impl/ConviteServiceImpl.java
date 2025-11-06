@@ -1,8 +1,6 @@
 package br.ifsp.events.service.impl;
 
 import br.ifsp.events.dto.convite.ConviteResponseDTO;
-import br.ifsp.events.dto.time.TimeResponseDTO;
-import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.*;
@@ -10,16 +8,14 @@ import br.ifsp.events.repository.ConviteRepository;
 import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.ConviteService;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+
 
 @Service
 public class ConviteServiceImpl implements ConviteService {
@@ -27,11 +23,14 @@ public class ConviteServiceImpl implements ConviteService {
     private final ConviteRepository conviteRepository;
     private final TimeRepository timeRepository;
     private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
-    public ConviteServiceImpl(ConviteRepository conviteRepository, TimeRepository timeRepository, UserRepository userRepository) {
+    public ConviteServiceImpl(ConviteRepository conviteRepository, TimeRepository timeRepository, 
+                              UserRepository userRepository, ModelMapper modelMapper) {
         this.conviteRepository = conviteRepository;
         this.timeRepository = timeRepository;
         this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -48,7 +47,7 @@ public class ConviteServiceImpl implements ConviteService {
             if (agora.isAfter(convite.getDataExpiracao())) {
                 convitesParaExpirar.add(convite);
             } else {
-                convitesValidosDTO.add(toConviteResponseDTO(convite));
+                convitesValidosDTO.add(modelMapper.map(convite, ConviteResponseDTO.class));
             }
         }
 
@@ -122,46 +121,4 @@ public class ConviteServiceImpl implements ConviteService {
         return convite;
     }
 
-
-
-    private ConviteResponseDTO toConviteResponseDTO(Convite convite) {
-        ConviteResponseDTO dto = new ConviteResponseDTO();
-        dto.setId(convite.getId());
-        dto.setStatus(convite.getStatus());
-        dto.setDataExpiracao(convite.getDataExpiracao());
-        dto.setTime(toTimeResponseDTO(convite.getTime()));
-        return dto;
-    }
-
-    private TimeResponseDTO toTimeResponseDTO(Time time) {
-        TimeResponseDTO dto = new TimeResponseDTO();
-        dto.setId(time.getId());
-        dto.setNome(time.getNome());
-        dto.setCapitao(toUserResponseDTO(time.getCapitao()));
-        dto.setModalidade(toModalidadeResponseDTO(time.getModalidade()));
-
-        Set<UserResponseDTO> membrosDTO = time.getMembros().stream()
-                .map(this::toUserResponseDTO)
-                .collect(Collectors.toSet());
-        dto.setMembros(membrosDTO);
-        
-        return dto;
-    }
-
-    private UserResponseDTO toUserResponseDTO(User user) {
-        return new UserResponseDTO(
-            user.getId(),
-            user.getNome(),
-            user.getEmail(),
-            user.getPerfilUser()
-        );
-    }
-    
-    private ModalidadeResponseDTO toModalidadeResponseDTO(Modalidade modalidade) {
-        ModalidadeResponseDTO dto = new ModalidadeResponseDTO(); // <-- SIMPLIFICADO
-        dto.setId(modalidade.getId());
-        dto.setNome(modalidade.getNome());
-        dto.setDescricao(modalidade.getDescricao());
-        return dto;
-    }
 }

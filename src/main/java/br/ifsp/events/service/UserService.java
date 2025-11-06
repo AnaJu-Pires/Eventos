@@ -1,5 +1,6 @@
 package br.ifsp.events.service;
 
+import java.io.Writer;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,6 @@ public interface UserService extends UserDetailsService {
     void registerUser(UserRegisterDTO registerDTO);
     
     /**
-     * ativa o usuario se o token for valido e nao tiver vencido
      * @param token
      * @return
      */
@@ -43,4 +43,6 @@ public interface UserService extends UserDetailsService {
     UserInteresseResponseDTO getUserInteresses(Long userId);
 
     UserInteresseResponseDTO updateUserInteresses(Long userId, UserInteresseUpdateDTO interessesDTO);
+
+    void writeUsersCsv(Writer writer);
 }
