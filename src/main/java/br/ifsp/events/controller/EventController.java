@@ -1,11 +1,13 @@
 package br.ifsp.events.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,7 @@ import br.ifsp.events.dto.event.EventResponseDTO;
 import br.ifsp.events.dto.inscricao.InscricaoRequestDTO;
 import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
 import br.ifsp.events.service.EventService;
+import br.ifsp.events.service.InscricaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
@@ -29,9 +32,11 @@ import jakarta.validation.Valid;
 public class EventController {
 
     private final EventService eventService;
+    private final InscricaoService inscricaoService;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, InscricaoService inscricaoService) {
         this.eventService = eventService;
+        this.inscricaoService = inscricaoService;
     }
 
     @Operation(summary = "Cria um novo evento", description = "Cadastra um novo evento no sistema.")
@@ -78,5 +83,13 @@ public class EventController {
     public ResponseEntity<InscricaoResponseDTO> inscreverTime(@PathVariable("id") Long eventoId, @RequestBody @Valid InscricaoRequestDTO requestDTO) {
         InscricaoResponseDTO inscricao = eventService.inscreverTime(eventoId, requestDTO.getTimeId());
         return ResponseEntity.status(HttpStatus.CREATED).body(inscricao);
+    }
+
+    @Operation(summary = "Lista inscrições pendentes", description = "Lista todas as inscrições pendentes de um evento.")
+    @GetMapping("/{id}/inscricoes")
+    @PreAuthorize("hasRole('GESTOR_EVENTOS')")
+    public ResponseEntity<List<InscricaoResponseDTO>> getInscricoesPendentes(@PathVariable Long id) {
+        List<InscricaoResponseDTO> inscricoes = inscricaoService.listPendentesByEvento(id);
+        return ResponseEntity.ok(inscricoes);
     }
 }
