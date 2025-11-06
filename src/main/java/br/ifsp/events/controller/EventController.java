@@ -22,8 +22,10 @@ import br.ifsp.events.dto.event.EventRequestDTO;
 import br.ifsp.events.dto.event.EventResponseDTO;
 import br.ifsp.events.dto.inscricao.InscricaoRequestDTO;
 import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
+import br.ifsp.events.dto.partida.PartidaResponseDTO;
 import br.ifsp.events.service.EventService;
 import br.ifsp.events.service.InscricaoService;
+import br.ifsp.events.service.PartidaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
@@ -33,10 +35,12 @@ public class EventController {
 
     private final EventService eventService;
     private final InscricaoService inscricaoService;
+    private final PartidaService partidaService;
 
-    public EventController(EventService eventService, InscricaoService inscricaoService) {
+    public EventController(EventService eventService, InscricaoService inscricaoService, PartidaService partidaService) {
         this.eventService = eventService;
         this.inscricaoService = inscricaoService;
+        this.partidaService = partidaService;
     }
 
     @Operation(summary = "Cria um novo evento", description = "Cadastra um novo evento no sistema.")
@@ -91,5 +95,12 @@ public class EventController {
     public ResponseEntity<List<InscricaoResponseDTO>> getInscricoesPendentes(@PathVariable Long id) {
         List<InscricaoResponseDTO> inscricoes = inscricaoService.listPendentesByEvento(id);
         return ResponseEntity.ok(inscricoes);
+    }
+
+    @Operation(summary = "Lista partidas de um evento", description = "Retorna todas as partidas de um evento, com times e placares. Este endpoint é público.")
+    @GetMapping("/{id}/partidas")
+    public ResponseEntity<List<PartidaResponseDTO>> getPartidasDoEvento(@PathVariable Long id) {
+        List<PartidaResponseDTO> partidas = partidaService.listByEvento(id);
+        return ResponseEntity.ok(partidas);
     }
 }
