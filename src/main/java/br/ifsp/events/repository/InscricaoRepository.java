@@ -11,4 +11,6 @@ public interface InscricaoRepository extends JpaRepository<Inscricao, Long> {
     long countByEventoModalidadeIdAndStatusInscricaoIn(Long eventoModalidadeId, List<StatusInscricao> statuses);
 
     boolean existsByTimeIdAndEventoModalidadeId(Long timeId, Long eventoModalidadeId);
+
+    List<Inscricao> findAllByEventoModalidade_Evento_IdAndStatusInscricao(Long eventoId, StatusInscricao status);
 }
