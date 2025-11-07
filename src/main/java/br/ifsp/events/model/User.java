@@ -26,6 +26,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -79,10 +80,28 @@ public class User implements UserDetails {
         joinColumns = @JoinColumn(name = "usuarioId"),
         inverseJoinColumns = @JoinColumn(name = "modalidadeId")
     )
+    
     private Set<Modalidade> interesses = new HashSet<>();
+
     @ManyToMany(mappedBy = "membros", fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<Time> timesQueParticipo = new HashSet<>();
+
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long pontosSaldo = 0L;
+
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long pontosRecorde = 0L;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NivelEngajamento nivel = NivelEngajamento.BRONZE;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private RankEngajamento rank = RankEngajamento.NENHUM;
 
 
     @Override
