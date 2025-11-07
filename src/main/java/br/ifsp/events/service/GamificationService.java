@@ -16,4 +16,10 @@ public interface GamificationService {
      * @param tipo Ação com custo (ex: CRIAR_COMUNIDADE).
      */
     void checarPermissao(User usuario, TipoAcaoGamificacao tipo);
+
+    /**
+     * Atualiza os Ranks (Diamante/Platina) de todos os usuários.
+     * Este método será chamado por uma tarefa agendada.
+     */
+    void atualizarRanks();
 }

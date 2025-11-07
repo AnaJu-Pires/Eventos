@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import br.ifsp.events.model.RankEngajamento;
 import br.ifsp.events.model.StatusUser;
 import br.ifsp.events.model.User;
 
@@ -64,4 +65,16 @@ public interface UserRepository {
     Optional<User> findById(Long id);
 
     long count();
+
+    /**
+     * Encontra todos os usuários que possuem um dos ranks da lista (PLATINA ou DIAMANTE).
+     * Usado para resetar os ranks antes de recalcular.
+     */
+    List<User> findAllByRankIn(List<RankEngajamento> ranks);
+
+    /**
+     * Encontra os N usuários com maior 'pontosSaldo'.
+     * Usado para definir os novos ranks.
+     */
+    List<User> findTopNByPontosSaldo(int n);
 }

@@ -1,5 +1,6 @@
 package br.ifsp.events.service.impl;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.ifsp.events.config.GamificationConstants;
 import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.model.NivelEngajamento;
+import br.ifsp.events.model.RankEngajamento;
 import br.ifsp.events.model.TipoAcaoGamificacao;
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.UserRepository;
@@ -63,6 +65,34 @@ public class GamificationServiceImpl implements GamificationService {
         long custo = PONTOS_MAP.get(tipo);
         if (usuario.getPontosSaldo() + custo < 0) {
             throw new BusinessRuleException("Pontos insuficientes. Você precisa de " + (custo * -1) + " pontos, mas só tem " + usuario.getPontosSaldo() + ".");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void atualizarRanks() {
+        List<User> usuariosComRank = userRepository.findAllByRankIn(
+            List.of(RankEngajamento.PLATINA, RankEngajamento.DIAMANTE)
+        );
+        
+        for (User user : usuariosComRank) {
+            user.setRank(RankEngajamento.NENHUM);
+            userRepository.save(user);
+        }
+
+        List<User> top100 = userRepository.findTopNByPontosSaldo(
+            GamificationConstants.RANK_PLATINA_TOP_N
+        );
+
+        int rankAtual = 1;
+        for (User user : top100) {
+            if (rankAtual <= GamificationConstants.RANK_DIAMANTE_TOP_N) {
+                user.setRank(RankEngajamento.DIAMANTE);
+            } else {
+                user.setRank(RankEngajamento.PLATINA);
+            }
+            userRepository.save(user);
+            rankAtual++;
         }
     }
 
