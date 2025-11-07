@@ -3,6 +3,7 @@ package br.ifsp.events.model;
 import java.time.LocalDate;
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,9 +12,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,8 +29,8 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 //evita stackoverflow impedindo loop
-@ToString(exclude = {"modalidades"})
-@EqualsAndHashCode(exclude = {"modalidades"})
+@ToString(exclude = {"eventoModalidades"})
+@EqualsAndHashCode(exclude = {"eventoModalidades"})
 public class Evento {
 
     @Id
@@ -57,11 +57,6 @@ public class Evento {
     @JoinColumn(name = "organizadorId")
     private User organizador;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "eventoModalidades",
-        joinColumns = @JoinColumn(name = "eventoId"),
-        inverseJoinColumns = @JoinColumn(name = "modalidadeId")
-    )
-    private Set<Modalidade> modalidades;
+    @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EventoModalidade> eventoModalidades;
 }

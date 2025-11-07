@@ -1,12 +1,13 @@
 package br.ifsp.events.dto.event;
 
+import java.time.LocalDate;
+import java.util.Set;
+
 import br.ifsp.events.model.StatusEvento;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @Builder
@@ -21,5 +22,5 @@ public class EventResponseDTO {
     private LocalDate dataFim;
     private StatusEvento status;
     private String organizadorNome;
-    private Set<String> modalidades;
+    private Set<EventoModalidadeResponseDTO> eventoModalidades;
 }

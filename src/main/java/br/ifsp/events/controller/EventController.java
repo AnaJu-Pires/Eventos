@@ -1,10 +1,13 @@
 package br.ifsp.events.controller;
 
 import java.net.URI;
+import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,7 +20,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.ifsp.events.dto.event.EventPatchDTO;
 import br.ifsp.events.dto.event.EventRequestDTO;
 import br.ifsp.events.dto.event.EventResponseDTO;
+import br.ifsp.events.dto.inscricao.InscricaoRequestDTO;
+import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
+import br.ifsp.events.dto.partida.PartidaResponseDTO;
 import br.ifsp.events.service.EventService;
+import br.ifsp.events.service.InscricaoService;
+import br.ifsp.events.service.PartidaService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 
 @RestController
@@ -25,11 +34,16 @@ import jakarta.validation.Valid;
 public class EventController {
 
     private final EventService eventService;
+    private final InscricaoService inscricaoService;
+    private final PartidaService partidaService;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, InscricaoService inscricaoService, PartidaService partidaService) {
         this.eventService = eventService;
+        this.inscricaoService = inscricaoService;
+        this.partidaService = partidaService;
     }
 
+    @Operation(summary = "Cria um novo evento", description = "Cadastra um novo evento no sistema.")
     @PostMapping
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> create(@RequestBody @Valid EventRequestDTO eventRequestDTO) {
@@ -44,6 +58,7 @@ public class EventController {
         return ResponseEntity.created(location).body(createdEvent);
     }
 
+    @Operation(summary = "Atualiza um evento", description = "Atualiza todos os dados de um evento existente.")
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> update(@PathVariable Long id, @RequestBody @Valid EventRequestDTO eventRequestDTO) {
@@ -51,6 +66,7 @@ public class EventController {
         return ResponseEntity.ok(updatedEvent);
     }
 
+    @Operation(summary = "Atualiza parcialmente um evento", description = "Atualiza um ou mais campos de um evento existente.")
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> patch(@PathVariable Long id, @RequestBody EventPatchDTO eventPatchDTO) {
@@ -58,10 +74,33 @@ public class EventController {
         return ResponseEntity.ok(patchedEvent);
     }
 
+    @Operation(summary = "Exclui um evento", description = "Remove um evento do sistema.")
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         eventService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Inscreve um time em um evento", description = "Inscreve o time do capitão autenticado em um evento.")
+    @PostMapping("/{id}/inscrever")
+    public ResponseEntity<InscricaoResponseDTO> inscreverTime(@PathVariable("id") Long eventoId, @RequestBody @Valid InscricaoRequestDTO requestDTO) {
+        InscricaoResponseDTO inscricao = eventService.inscreverTime(eventoId, requestDTO.getTimeId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(inscricao);
+    }
+
+    @Operation(summary = "Lista inscrições pendentes", description = "Lista todas as inscrições pendentes de um evento.")
+    @GetMapping("/{id}/inscricoes")
+    @PreAuthorize("hasRole('GESTOR_EVENTOS')")
+    public ResponseEntity<List<InscricaoResponseDTO>> getInscricoesPendentes(@PathVariable Long id) {
+        List<InscricaoResponseDTO> inscricoes = inscricaoService.listPendentesByEvento(id);
+        return ResponseEntity.ok(inscricoes);
+    }
+
+    @Operation(summary = "Lista partidas de um evento", description = "Retorna todas as partidas de um evento, com times e placares. Este endpoint é público.")
+    @GetMapping("/{id}/partidas")
+    public ResponseEntity<List<PartidaResponseDTO>> getPartidasDoEvento(@PathVariable Long id) {
+        List<PartidaResponseDTO> partidas = partidaService.listByEvento(id);
+        return ResponseEntity.ok(partidas);
     }
 }

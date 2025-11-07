@@ -1,15 +1,14 @@
 package br.ifsp.events.dto.event;
 
+import java.time.LocalDate;
+import java.util.Set;
+
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -29,6 +28,6 @@ public class EventRequestDTO {
     @FutureOrPresent(message = "A data de fim não pode ser no passado")
     private LocalDate dataFim;
 
-    @NotEmpty(message = "O evento deve ter pelo menos uma modalidade")
-    private Set<Long> modalidadesIds;
+    @NotNull(message = "O evento deve ter pelo menos uma modalidade")
+    private Set<EventoModalidadeRequestDTO> modalidades;
 }

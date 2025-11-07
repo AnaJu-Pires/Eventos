@@ -16,5 +16,5 @@ public class EventPatchDTO {
     private Optional<String> descricao = Optional.empty();
     private Optional<LocalDate> dataInicio = Optional.empty();
     private Optional<LocalDate> dataFim = Optional.empty();
-    private Optional<Set<Long>> modalidadesIds = Optional.empty();
+    private Optional<Set<EventoModalidadePatchDTO>> modalidades = Optional.empty();
 }

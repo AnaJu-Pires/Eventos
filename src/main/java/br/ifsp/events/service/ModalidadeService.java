@@ -1,5 +1,7 @@
 package br.ifsp.events.service;
 
+import java.util.List;
+
 import br.ifsp.events.dto.modalidade.ModalidadePatchRequestDTO;
 import br.ifsp.events.dto.modalidade.ModalidadeRequestDTO;
 import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;

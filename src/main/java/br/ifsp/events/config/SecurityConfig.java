@@ -2,6 +2,7 @@ package br.ifsp.events.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,12 +17,19 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import br.ifsp.events.config.filter.JwtAuthFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private static final String[] SWAGGER_WHITELIST = {
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/swagger-ui.html"
+    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -36,6 +44,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll() // <-- ADICIONADO
+                .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll() // <-- ADICIONADO
+                .requestMatchers(SWAGGER_WHITELIST).permitAll() // <-- ADICIONADO
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -47,9 +58,9 @@ public class SecurityConfig {
 
 
     @Bean
-    @SuppressWarnings("deprecation") //https://www.reddit.com/r/SpringBoot/comments/1nibutf/spring_security_implementation_needs_help/
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder());
+    @SuppressWarnings("deprecation")
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) { // <-- 1. INJEÇÃO CORRETA
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder); // <-- 2. USANDO O BEAN
         authProvider.setUserDetailsService(userDetailsService);
         return authProvider;
     }

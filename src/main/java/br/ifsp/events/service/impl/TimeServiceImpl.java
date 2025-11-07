@@ -1,12 +1,10 @@
 package br.ifsp.events.service.impl;
 
 import br.ifsp.events.dto.convite.ConviteCreateDTO;
-import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
 import br.ifsp.events.dto.time.CapitaoTransferDTO;
 import br.ifsp.events.dto.time.TimeCreateDTO;
 import br.ifsp.events.dto.time.TimeUpdateDTO;
 import br.ifsp.events.dto.time.TimeResponseDTO;
-import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Convite;
@@ -19,10 +17,7 @@ import br.ifsp.events.repository.ModalidadeRepository;
 import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.TimeService;
-
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -36,12 +31,16 @@ public class TimeServiceImpl implements TimeService {
     private final UserRepository userRepository;
     private final ModalidadeRepository modalidadeRepository;
     private final ConviteRepository conviteRepository;
+    private final ModelMapper modelMapper;
 
-    public TimeServiceImpl(TimeRepository timeRepository, UserRepository userRepository, ModalidadeRepository modalidadeRepository, ConviteRepository conviteRepository) {
+    public TimeServiceImpl(TimeRepository timeRepository, UserRepository userRepository, 
+                           ModalidadeRepository modalidadeRepository, ConviteRepository conviteRepository,
+                           ModelMapper modelMapper) {
         this.timeRepository = timeRepository;
         this.userRepository = userRepository;
         this.modalidadeRepository = modalidadeRepository;
         this.conviteRepository = conviteRepository;
+        this.modelMapper = modelMapper;
     }
 
     @Override
@@ -143,7 +142,6 @@ public class TimeServiceImpl implements TimeService {
 
         Convite novoConvite = new Convite(time, usuarioConvidado);
         conviteRepository.save(novoConvite);
-
     }
 
     @Override
@@ -167,35 +165,7 @@ public class TimeServiceImpl implements TimeService {
     }
 
     private TimeResponseDTO toResponseDTO(Time time) {
-        TimeResponseDTO dto = new TimeResponseDTO();
-        dto.setId(time.getId());
-        dto.setNome(time.getNome());
-        dto.setCapitao(toUserResponseDTO(time.getCapitao()));
-        dto.setModalidade(toModalidadeResponseDTO(time.getModalidade()));
-
-        Set<UserResponseDTO> membrosDTO = time.getMembros().stream()
-                .map(this::toUserResponseDTO)
-                .collect(Collectors.toSet());
-        dto.setMembros(membrosDTO);
-
-        return dto;
-    }
-
-    private UserResponseDTO toUserResponseDTO(User user) {
-        return new UserResponseDTO(
-            user.getId(),
-            user.getNome(),
-            user.getEmail(),
-            user.getPerfilUser()
-        );
-    }
-
-    private ModalidadeResponseDTO toModalidadeResponseDTO(Modalidade modalidade) {
-        ModalidadeResponseDTO dto = new ModalidadeResponseDTO();
-        dto.setId(modalidade.getId());
-        dto.setNome(modalidade.getNome());
-        dto.setDescricao(modalidade.getDescricao());
-        return dto;
+        return modelMapper.map(time, TimeResponseDTO.class);
     }
 
     @Override
@@ -203,6 +173,5 @@ public class TimeServiceImpl implements TimeService {
         Page<Time> timePage = timeRepository.findAll(pageable);
         return timePage.map(this::toResponseDTO);
     }
-
 
 }
