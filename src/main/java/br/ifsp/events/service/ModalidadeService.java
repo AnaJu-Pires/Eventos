@@ -6,7 +6,6 @@ import br.ifsp.events.dto.modalidade.ModalidadePatchRequestDTO;
 import br.ifsp.events.dto.modalidade.ModalidadeRequestDTO;
 import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
 
-import java.util.List;
 
 public interface ModalidadeService {
 

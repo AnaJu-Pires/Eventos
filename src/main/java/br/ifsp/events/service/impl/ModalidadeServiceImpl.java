@@ -88,7 +88,7 @@ public class ModalidadeServiceImpl implements ModalidadeService { // Implementa 
 
         // REGRA DE NEGÓCIO: Não permitir exclusão se a modalidade estiver vinculada a eventos
         // (Verificar se a relação está mapeada corretamente no modelo Modalidade)
-        if (modalidade.getEventos() != null && !modalidade.getEventos().isEmpty()) {
+        if (modalidade.getEventoModalidades() != null && !modalidade.getEventoModalidades().isEmpty()) {
             throw new BusinessRuleException("Não é possível excluir uma modalidade que está associada a um ou mais eventos.");
         }
         
