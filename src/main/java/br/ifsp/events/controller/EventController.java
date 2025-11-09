@@ -20,6 +20,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.ifsp.events.dto.event.EventPatchDTO;
 import br.ifsp.events.dto.event.EventRequestDTO;
 import br.ifsp.events.dto.event.EventResponseDTO;
+import br.ifsp.events.dto.event.GerarChaveRequestDTO;
 import br.ifsp.events.dto.inscricao.InscricaoRequestDTO;
 import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
 import br.ifsp.events.dto.partida.PartidaResponseDTO;
@@ -34,16 +35,18 @@ import jakarta.validation.Valid;
 public class EventController {
 
     private final EventService eventService;
+    // ADICIONADOS:
     private final InscricaoService inscricaoService;
     private final PartidaService partidaService;
 
+    // CONSTRUTOR ATUALIZADO:
     public EventController(EventService eventService, InscricaoService inscricaoService, PartidaService partidaService) {
         this.eventService = eventService;
         this.inscricaoService = inscricaoService;
         this.partidaService = partidaService;
     }
 
-    @Operation(summary = "Cria um novo evento", description = "Cadastra um novo evento no sistema.")
+    @Operation(summary = "Cria um novo evento", description = "Cadastra um novo evento no sistema.") // <-- Operation adicionada
     @PostMapping
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> create(@RequestBody @Valid EventRequestDTO eventRequestDTO) {
@@ -58,7 +61,7 @@ public class EventController {
         return ResponseEntity.created(location).body(createdEvent);
     }
 
-    @Operation(summary = "Atualiza um evento", description = "Atualiza todos os dados de um evento existente.")
+    @Operation(summary = "Atualiza um evento", description = "Atualiza todos os dados de um evento existente.") // <-- Operation adicionada
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> update(@PathVariable Long id, @RequestBody @Valid EventRequestDTO eventRequestDTO) {
@@ -66,7 +69,7 @@ public class EventController {
         return ResponseEntity.ok(updatedEvent);
     }
 
-    @Operation(summary = "Atualiza parcialmente um evento", description = "Atualiza um ou mais campos de um evento existente.")
+    @Operation(summary = "Atualiza parcialmente um evento", description = "Atualiza um ou mais campos de um evento existente.") // <-- Operation adicionada
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<EventResponseDTO> patch(@PathVariable Long id, @RequestBody EventPatchDTO eventPatchDTO) {
@@ -74,13 +77,17 @@ public class EventController {
         return ResponseEntity.ok(patchedEvent);
     }
 
-    @Operation(summary = "Exclui um evento", description = "Remove um evento do sistema.")
+    @Operation(summary = "Exclui um evento", description = "Remove um evento do sistema.") // <-- Operation adicionada
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('GESTOR_EVENTOS')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         eventService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    // ===================================
+    // MÉTODOS ADICIONADOS
+    // ===================================
 
     @Operation(summary = "Inscreve um time em um evento", description = "Inscreve o time do capitão autenticado em um evento.")
     @PostMapping("/{id}/inscrever")
@@ -102,5 +109,14 @@ public class EventController {
     public ResponseEntity<List<PartidaResponseDTO>> getPartidasDoEvento(@PathVariable Long id) {
         List<PartidaResponseDTO> partidas = partidaService.listByEvento(id);
         return ResponseEntity.ok(partidas);
+    }
+
+    @Operation(summary = "Gera chave de confrontos (ex.: mata-mata ou pontos corridos)", 
+               description = "Gera automaticamente a chave de confrontos para as modalidades do evento no formato solicitado. Requer permissões de gestor e que as inscrições estejam fechadas.")
+    @PostMapping("/{id}/gerar-chave")
+    @PreAuthorize("hasRole('GESTOR_EVENTOS')")
+    public ResponseEntity<Void> gerarChave(@PathVariable("id") Long eventoId, @RequestBody @Valid GerarChaveRequestDTO request) {
+        partidaService.gerarChaveParaEvento(eventoId, request.getFormato());
+        return ResponseEntity.noContent().build();
     }
 }
