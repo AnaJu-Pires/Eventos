@@ -1,6 +1,7 @@
 package br.ifsp.events.dto.user;
 
 import br.ifsp.events.model.PerfilUser;
+import br.ifsp.events.model.StatusUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,4 +24,7 @@ public class UserResponseDTO {
 
     @Schema(description = "Perfil do usuário", example = "ALUNO")
     private PerfilUser perfilUser;
+
+    @Schema(description = "Status do usuário", example = "ATIVO")
+    private StatusUser status;
 }
