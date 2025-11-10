@@ -2,7 +2,7 @@ package br.ifsp.events.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpMethod; // Import faltando (provavelmente)
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,6 +19,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import br.ifsp.events.config.filter.JwtAuthFilter;
+import br.ifsp.events.exception.CustomAccessDeniedHandler;
+import br.ifsp.events.exception.CustomAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -39,18 +41,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, 
                                                    JwtAuthFilter jwtAuthFilter, 
-                                                   AuthenticationProvider authenticationProvider) throws Exception {
+                                                   AuthenticationProvider authenticationProvider, 
+                                                   CustomAuthenticationEntryPoint authenticationEntryPoint, 
+                                                   CustomAccessDeniedHandler accessDeniedHandler) 
+        throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll() // <-- ADICIONADO
-                .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll() // <-- ADICIONADO
-                .requestMatchers(SWAGGER_WHITELIST).permitAll() // <-- ADICIONADO
+                .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll()
+                .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll()
+                .requestMatchers(SWAGGER_WHITELIST).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider)
+
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)           
+            )
+
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -59,8 +70,8 @@ public class SecurityConfig {
 
     @Bean
     @SuppressWarnings("deprecation")
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) { // <-- 1. INJEÇÃO CORRETA
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder); // <-- 2. USANDO O BEAN
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder);
         authProvider.setUserDetailsService(userDetailsService);
         return authProvider;
     }

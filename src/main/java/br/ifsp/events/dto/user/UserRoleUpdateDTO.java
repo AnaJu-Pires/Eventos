@@ -10,9 +10,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Requisição de atualização de perfil de usuário exclusivo para administradores")
+@Schema(description = "Requisição de atualização de perfil de usuário (Apenas Admin)")
 public class UserRoleUpdateDTO {
-    @Schema(description = "Perfil do usuário")
+
+    @Schema(description = "O novo perfil do usuário", 
+            example = "ADMIN", 
+            requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "O perfil do usuário é obrigatório")
     private PerfilUser perfilUser;
 }
