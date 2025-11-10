@@ -2,6 +2,7 @@ package br.ifsp.events.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,10 +19,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import br.ifsp.events.config.filter.JwtAuthFilter;
-// --- INÍCIO DA MUDANÇA (Novos Imports) ---
-import br.ifsp.events.exception.CustomAccessDeniedHandler;
-import br.ifsp.events.exception.CustomAuthenticationEntryPoint;
-// --- FIM DA MUDANÇA ---
 
 @Configuration
 @EnableWebSecurity
@@ -46,7 +43,9 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll() // <-- ADICIONADO
+                .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll() // <-- ADICIONADO
+                .requestMatchers(SWAGGER_WHITELIST).permitAll() // <-- ADICIONADO
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

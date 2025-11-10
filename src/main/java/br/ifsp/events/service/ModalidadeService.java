@@ -6,6 +6,7 @@ import br.ifsp.events.dto.modalidade.ModalidadePatchRequestDTO;
 import br.ifsp.events.dto.modalidade.ModalidadeRequestDTO;
 import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
 
+
 public interface ModalidadeService {
 
     ModalidadeResponseDTO create(ModalidadeRequestDTO requestDTO);
