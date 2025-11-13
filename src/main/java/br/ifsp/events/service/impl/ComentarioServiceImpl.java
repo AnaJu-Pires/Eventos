@@ -1,5 +1,7 @@
 package br.ifsp.events.service.impl;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +62,18 @@ public class ComentarioServiceImpl implements ComentarioService {
         }
 
         return toResponseDTO(comentarioSalvo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ComentarioResponseDTO> listByPost(Long postId, Pageable pageable) {
+        if (!postRepository.existsById(postId)) {
+            throw new ResourceNotFoundException("Post com ID " + postId + " não encontrado.");
+        }
+        
+        Page<Comentario> comentarios = comentarioRepository.findAllByPostIdAndComentarioPaiIsNull(postId, pageable);
+
+        return comentarios.map(this::toResponseDTO);
     }
 
     private ComentarioResponseDTO toResponseDTO(Comentario comentario) {
