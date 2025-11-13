@@ -14,7 +14,9 @@ import br.ifsp.events.repository.ComunidadeRepository;
 import br.ifsp.events.repository.PostRepository;
 import br.ifsp.events.service.GamificationService;
 import br.ifsp.events.service.PostService;
-import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -55,6 +57,18 @@ public class PostServiceImpl implements PostService {
         }
 
         return toResponseDTO(postSalvo);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PostResponseDTO> listByComunidade(Long comunidadeId, Pageable pageable) {
+        if (!comunidadeRepository.existsById(comunidadeId)) {
+            throw new ResourceNotFoundException("Comunidade com ID " + comunidadeId + " não encontrada.");
+        }
+
+        Page<Post> posts = postRepository.findAllByComunidadeId(comunidadeId, pageable);
+
+        return posts.map(this::toResponseDTO);
     }
 
     private PostResponseDTO toResponseDTO(Post post) {

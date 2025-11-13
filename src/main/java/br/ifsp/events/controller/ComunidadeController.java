@@ -3,6 +3,7 @@ package br.ifsp.events.controller;
 import java.net.URI;
 import java.util.List;
 
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import br.ifsp.events.dto.comunidade.ComunidadeCreateDTO;
 import br.ifsp.events.dto.comunidade.ComunidadeResponseDTO;
@@ -18,8 +23,9 @@ import br.ifsp.events.dto.post.PostCreateDTO;
 import br.ifsp.events.dto.post.PostResponseDTO;
 import br.ifsp.events.service.ComunidadeService;
 import br.ifsp.events.service.PostService;
+
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -75,5 +81,16 @@ public class ComunidadeController {
                description = "Retorna os dados de uma comunidade específica.")
     public ResponseEntity<ComunidadeResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(comunidadeService.findById(id));
+    }
+
+    @GetMapping("/{comunidadeId}/posts")
+    @PreAuthorize("permitAll()")
+    @Operation(summary = "Lista os posts de uma comunidade",
+               description = "Retorna uma lista paginada de todos os posts de uma comunidade específica.")
+    public ResponseEntity<Page<PostResponseDTO>> listPostsByComunidade(
+            @PathVariable Long comunidadeId,
+            @PageableDefault(size = 10, sort = "dataCriacao", direction = Sort.Direction.DESC) Pageable pageable) {
+        
+        return ResponseEntity.ok(postService.listByComunidade(comunidadeId, pageable));
     }
 }

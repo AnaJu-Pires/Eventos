@@ -2,13 +2,12 @@ package br.ifsp.events.service;
 
 import br.ifsp.events.dto.post.PostCreateDTO;
 import br.ifsp.events.dto.post.PostResponseDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface PostService {
-    /**
-     * 
-     * @param dto Os dados do novo post.
-     * @param comunidadeId O ID da comunidade onde o post será criado.
-     * @return O post criado.
-     */ 
+
     PostResponseDTO create(PostCreateDTO dto, Long comunidadeId);
+
+    Page<PostResponseDTO> listByComunidade(Long comunidadeId, Pageable pageable);
 }

@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll()
                 .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll()
                 .requestMatchers(HttpMethod.GET, "/comunidades", "/comunidades/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/comunidades/{comunidadeId}/posts").permitAll()
                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
                 .anyRequest().authenticated()
             )
