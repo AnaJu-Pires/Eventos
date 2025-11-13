@@ -1,7 +1,10 @@
 package br.ifsp.events.service.impl;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.ifsp.events.dto.post.PostCreateDTO;
 import br.ifsp.events.dto.post.PostResponseDTO;
@@ -14,9 +17,6 @@ import br.ifsp.events.repository.ComunidadeRepository;
 import br.ifsp.events.repository.PostRepository;
 import br.ifsp.events.service.GamificationService;
 import br.ifsp.events.service.PostService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -69,6 +69,15 @@ public class PostServiceImpl implements PostService {
         Page<Post> posts = postRepository.findAllByComunidadeId(comunidadeId, pageable);
 
         return posts.map(this::toResponseDTO);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PostResponseDTO findById(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post com ID " + postId + " não encontrado."));
+        
+        return toResponseDTO(post);
     }
 
     private PostResponseDTO toResponseDTO(Post post) {
