@@ -3,14 +3,20 @@ package br.ifsp.events.service.impl;
 import br.ifsp.events.dto.comunidade.ComunidadeCreateDTO;
 import br.ifsp.events.dto.comunidade.ComunidadeResponseDTO;
 import br.ifsp.events.exception.BusinessRuleException;
-import br.ifsp.events.exception.DuplicateResourceException; //
+import br.ifsp.events.exception.DuplicateResourceException; 
+import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Comunidade;
-import br.ifsp.events.model.TipoAcaoGamificacao; //
+import br.ifsp.events.model.TipoAcaoGamificacao; 
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.ComunidadeRepository;
 import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.ComunidadeService;
 import br.ifsp.events.service.GamificationService;
+
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +55,25 @@ public class ComunidadeServiceImpl implements ComunidadeService{
         gamificationService.registrarAcao(authenticatedUser, TipoAcaoGamificacao.CRIAR_COMUNIDADE);
 
         return toResponseDTO(comunidadeSalva);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ComunidadeResponseDTO> listAll() {
+        List<Comunidade> comunidades = comunidadeRepository.findAll();
+        
+        return comunidades.stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ComunidadeResponseDTO findById(Long id) {
+        Comunidade comunidade = comunidadeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Comunidade com ID " + id + " não encontrada."));
+        
+        return toResponseDTO(comunidade);
     }
 
     private ComunidadeResponseDTO toResponseDTO(Comunidade comunidade){

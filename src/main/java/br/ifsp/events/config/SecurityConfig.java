@@ -44,9 +44,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll() // <-- ADICIONADO
-                .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll() // <-- ADICIONADO
-                .requestMatchers(SWAGGER_WHITELIST).permitAll() // <-- ADICIONADO
+                .requestMatchers(HttpMethod.GET, "/events/{id}/partidas").permitAll()
+                .requestMatchers(HttpMethod.POST, "/events/{id}/inscrever").permitAll()
+                .requestMatchers(HttpMethod.GET, "/comunidades", "/comunidades/{id}").permitAll()
+                .requestMatchers(SWAGGER_WHITELIST).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -59,8 +60,8 @@ public class SecurityConfig {
 
     @Bean
     @SuppressWarnings("deprecation")
-    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) { // <-- 1. INJEÇÃO CORRETA
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder); // <-- 2. USANDO O BEAN
+    public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService, PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(passwordEncoder);
         authProvider.setUserDetailsService(userDetailsService);
         return authProvider;
     }

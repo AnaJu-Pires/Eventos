@@ -1,9 +1,11 @@
 package br.ifsp.events.controller;
 
 import java.net.URI;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,5 +59,21 @@ public class ComunidadeController {
         PostResponseDTO novoPost = postService.create(dto, comunidadeId);
 
         return ResponseEntity.status(201).body(novoPost);
+    }
+
+    @GetMapping
+    @PreAuthorize("permitAll()")
+    @Operation(summary = "Lista todas as comunidades", 
+               description = "Retorna uma lista de todas as comunidades criadas no sistema.")
+    public ResponseEntity<List<ComunidadeResponseDTO>> listAll() {
+        return ResponseEntity.ok(comunidadeService.listAll());
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("permitAll()")
+    @Operation(summary = "Busca uma comunidade por ID", 
+               description = "Retorna os dados de uma comunidade específica.")
+    public ResponseEntity<ComunidadeResponseDTO> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(comunidadeService.findById(id));
     }
 }
