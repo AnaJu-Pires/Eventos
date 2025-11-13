@@ -2,6 +2,10 @@ package br.ifsp.events.controller;
 
 import java.net.URI;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,5 +60,16 @@ public class PostController {
                description = "Retorna os dados de um post específico, incluindo seu placar de votos atual.")
     public ResponseEntity<PostResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(postService.findById(id));
+    }
+
+    @GetMapping("/{postId}/comentarios")
+    @PreAuthorize("permitAll()")
+    @Operation(summary = "Lista os comentários de um post",
+               description = "Retorna uma lista paginada dos comentários de nível superior (não-respostas) de um post.")
+    public ResponseEntity<Page<ComentarioResponseDTO>> listComentariosByPost(
+            @PathVariable Long postId,
+            @PageableDefault(size = 20, sort = "votos", direction = Sort.Direction.DESC) Pageable pageable) {
+        
+        return ResponseEntity.ok(comentarioService.listByPost(postId, pageable));
     }
 }

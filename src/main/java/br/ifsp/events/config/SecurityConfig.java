@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/comunidades", "/comunidades/{id}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/comunidades/{comunidadeId}/posts").permitAll()
                 .requestMatchers(HttpMethod.GET, "/posts/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/posts/{postId}/comentarios").permitAll()
                 .requestMatchers(SWAGGER_WHITELIST).permitAll()
                 .anyRequest().authenticated()
             )
