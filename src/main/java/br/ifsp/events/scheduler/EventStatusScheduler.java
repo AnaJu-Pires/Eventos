@@ -1,4 +1,4 @@
-package br.ifsp.events.service.impl;
+package br.ifsp.events.scheduler;
 
 import java.time.LocalDate;
 import java.util.List;

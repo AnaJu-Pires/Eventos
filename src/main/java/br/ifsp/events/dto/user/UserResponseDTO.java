@@ -1,6 +1,8 @@
 package br.ifsp.events.dto.user;
 
+import br.ifsp.events.model.NivelEngajamento;
 import br.ifsp.events.model.PerfilUser;
+import br.ifsp.events.model.RankEngajamento;
 import br.ifsp.events.model.StatusUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -24,7 +26,16 @@ public class UserResponseDTO {
 
     @Schema(description = "Perfil do usuário", example = "ALUNO")
     private PerfilUser perfilUser;
-
+  
+    @Schema(description = "Pontos saldo do usuário")
+    private Long pontosSaldo;
+  
+    @Schema(description = "Nivel de engajamento do usuário")
+    private NivelEngajamento nivel;
+  
+    @Schema(description = "Rank de engajamento do usuário")
+    private RankEngajamento rank;
+  
     @Schema(description = "Status do usuário", example = "ATIVO")
     private StatusUser status;
 }
