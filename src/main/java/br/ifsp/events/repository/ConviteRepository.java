@@ -4,26 +4,16 @@ import br.ifsp.events.model.Convite;
 import br.ifsp.events.model.StatusConvite;
 import br.ifsp.events.model.Time;
 import br.ifsp.events.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface ConviteRepository {
-
-    /**
-     * @param convite
-     * @return
-     */
-    Convite save(Convite convite);
+public interface ConviteRepository extends JpaRepository<Convite, Long> {
 
     /**
      * @param id
-     * @return
-     */
-    Optional<Convite> findById(Long id);
-
-    /**
-     * @param usuarioLogado
      * @param usuario
      * @return
      */
@@ -46,7 +36,9 @@ public interface ConviteRepository {
     boolean existsByTimeAndUsuarioConvidadoAndStatus(Time time, User usuario, StatusConvite status);
 
     /**
-     * @param convite
+     * @param status
+     * @param agora
+     * @return
      */
-    void delete(Convite convite);
+    List<Convite> findByStatusAndDataExpiracaoBefore(StatusConvite status, LocalDateTime agora);
 }

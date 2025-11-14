@@ -78,31 +78,27 @@ class ConviteServiceImplTest {
 
 
     @Test
-    @DisplayName("listarMeusConvites deve filtrar e expirar convites vencidos")
+    @DisplayName("listarMeusConvites deve retornar apenas convites válidos (filtrando os expirados)")
     void listarMeusConvitesFiltraExpirados() {
         Convite conviteValido = convite;
         
         Convite conviteExpirado = new Convite();
         conviteExpirado.setId(2L);
         conviteExpirado.setStatus(StatusConvite.PENDENTE);
-        conviteExpirado.setDataExpiracao(LocalDateTime.now().minusDays(1)); // Vencido
+        conviteExpirado.setDataExpiracao(LocalDateTime.now().minusDays(1));
         
         when(conviteRepository.findByUsuarioConvidadoAndStatus(usuarioLogado, StatusConvite.PENDENTE))
                 .thenReturn(List.of(conviteValido, conviteExpirado));
-        
         when(modelMapper.map(conviteValido, ConviteResponseDTO.class)).thenReturn(new ConviteResponseDTO());
 
-        ArgumentCaptor<Convite> captor = ArgumentCaptor.forClass(Convite.class);
-
         List<ConviteResponseDTO> result = conviteService.listarMeusConvites(authMock);
-
         assertNotNull(result);
         assertEquals(1, result.size());
 
-        verify(conviteRepository, times(1)).save(captor.capture());
-        assertEquals(StatusConvite.EXPIRADO, captor.getValue().getStatus());
+        verify(conviteRepository, never()).save(any(Convite.class));
+        
+        verify(modelMapper, times(1)).map(conviteValido, ConviteResponseDTO.class);
     }
-
 
     @Test
     @DisplayName("Deve aceitar um convite com sucesso")
