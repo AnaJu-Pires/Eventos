@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.ifsp.events.model.RankEngajamento;
 import br.ifsp.events.model.StatusUser;
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.UserRepository;
@@ -102,5 +103,21 @@ public class UserRepositoryImpl implements UserRepository {
     public long count() {
         String jpql = "SELECT COUNT(u) FROM User u";
         return entityManager.createQuery(jpql, Long.class).getSingleResult();
+    }
+
+    @Override
+    public List<User> findAllByRankIn(List<RankEngajamento> ranks) {
+        String jpql = "SELECT u FROM User u WHERE u.rank IN :ranks";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("ranks", ranks);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<User> findTopNByPontosSaldo(int n) {
+        String jpql = "SELECT u FROM User u ORDER BY u.pontosSaldo DESC";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setMaxResults(n);
+        return query.getResultList();
     }
 }
