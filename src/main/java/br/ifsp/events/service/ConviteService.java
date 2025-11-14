@@ -23,4 +23,10 @@ public interface ConviteService {
      * @param auth
      */
     void recusarConvite(Long conviteId, Authentication auth);
+
+    /**
+     * @param timeId
+     * @return
+     */
+    void expirarConvitesPendentes();
 }
