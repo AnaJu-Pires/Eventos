@@ -18,8 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import br.ifsp.events.dto.modalidade.ModalidadeRequestDTO;
+import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
 import br.ifsp.events.dto.user.UserInteresseResponseDTO;
 import br.ifsp.events.dto.user.UserInteresseUpdateDTO;
 import br.ifsp.events.dto.user.UserLoginDTO;
@@ -140,7 +139,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public UserResponseDTO updateUserRole(Long userId, UserRoleUpdateDTO roleUpdateDTO) {
         User userToUpdate = userRepository.findById(userId)
@@ -168,15 +167,14 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
-    @Override
+   @Override
     @Transactional(readOnly = true)
     public UserInteresseResponseDTO getUserInteresses(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
-
-        List<ModalidadeRequestDTO> interessesList = user.getInteresses()
+        List<ModalidadeResponseDTO> interessesList = user.getInteresses()
             .stream()
-            .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
+            .map(modalidade -> modelMapper.map(modalidade, ModalidadeResponseDTO.class)) // <-- MUDANÇA AQUI
             .collect(Collectors.toList());
 
         return new UserInteresseResponseDTO(interessesList);
@@ -198,9 +196,9 @@ public class UserServiceImpl implements UserService {
 
         User updatedUser = userRepository.save(user);
 
-        List<ModalidadeRequestDTO> interessesList = updatedUser.getInteresses()
+        List<ModalidadeResponseDTO> interessesList = updatedUser.getInteresses()
             .stream()
-            .map(modalidade -> modelMapper.map(modalidade, ModalidadeRequestDTO.class))
+            .map(modalidade -> modelMapper.map(modalidade, ModalidadeResponseDTO.class)) // <-- MUDANÇA AQUI
             .collect(Collectors.toList());
 
         return new UserInteresseResponseDTO(interessesList);
