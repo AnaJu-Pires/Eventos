@@ -100,7 +100,7 @@ public class User implements UserDetails {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "userRank", nullable = false)
     private RankEngajamento rank = RankEngajamento.NENHUM;
 
 
