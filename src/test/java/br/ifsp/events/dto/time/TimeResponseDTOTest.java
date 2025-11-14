@@ -21,7 +21,9 @@ class TimeResponseDTOTest {
 
     @Test
     void allArgsConstructor_setsAllFields() {
-        UserResponseDTO capitao = new UserResponseDTO(1L, "Ana", "ana@ifsp.edu.br", null, null);
+        UserResponseDTO capitao = new UserResponseDTO(
+                1L, "Ana", "ana@ifsp.edu.br", br.ifsp.events.model.PerfilUser.ALUNO, 10L, br.ifsp.events.model.NivelEngajamento.BRONZE, br.ifsp.events.model.RankEngajamento.NENHUM, br.ifsp.events.model.StatusUser.ATIVO
+        );
         ModalidadeResponseDTO modalidade = new ModalidadeResponseDTO(1L, "Futebol", "Esporte");
         Set<UserResponseDTO> membros = new HashSet<>();
 

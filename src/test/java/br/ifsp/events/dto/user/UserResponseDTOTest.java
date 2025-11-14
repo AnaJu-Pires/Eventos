@@ -2,6 +2,8 @@ package br.ifsp.events.dto.user;
 
 import br.ifsp.events.model.PerfilUser;
 import br.ifsp.events.model.StatusUser;
+import br.ifsp.events.model.NivelEngajamento;
+import br.ifsp.events.model.RankEngajamento;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +21,14 @@ class UserResponseDTOTest {
     @Test
     void allArgsConstructor_setsAllFields() {
         UserResponseDTO dto = new UserResponseDTO(
-                1L, "Ana Silva", "ana@aluno.ifsp.edu.br", PerfilUser.ALUNO, StatusUser.ATIVO
+                1L,
+                "Ana Silva",
+                "ana@aluno.ifsp.edu.br",
+                PerfilUser.ALUNO,
+                100L,
+                NivelEngajamento.BRONZE,
+                RankEngajamento.NENHUM,
+                StatusUser.ATIVO
         );
 
         assertEquals(1L, dto.getId());
@@ -47,8 +56,8 @@ class UserResponseDTOTest {
 
     @Test
     void equality_twoInstancesWithSameData() {
-        UserResponseDTO dto1 = new UserResponseDTO(1L, "Ana", "ana@ifsp.edu.br", PerfilUser.ALUNO, StatusUser.ATIVO);
-        UserResponseDTO dto2 = new UserResponseDTO(1L, "Ana", "ana@ifsp.edu.br", PerfilUser.ALUNO, StatusUser.ATIVO);
+        UserResponseDTO dto1 = new UserResponseDTO(1L, "Ana", "ana@ifsp.edu.br", PerfilUser.ALUNO, 50L, NivelEngajamento.PRATA, RankEngajamento.NENHUM, StatusUser.ATIVO);
+        UserResponseDTO dto2 = new UserResponseDTO(1L, "Ana", "ana@ifsp.edu.br", PerfilUser.ALUNO, 50L, NivelEngajamento.PRATA, RankEngajamento.NENHUM, StatusUser.ATIVO);
 
         assertEquals(dto1, dto2);
     }
