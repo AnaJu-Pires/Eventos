@@ -1,34 +1,7 @@
 package br.ifsp.events.repository;
-
 import br.ifsp.events.model.Time;
-import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TimeRepository {
+public interface TimeRepository extends JpaRepository<Time, Long> {
 
-    /**
-     * @param time
-     * @return
-     */
-    Time save(Time time);
-
-    /**
-     * @param id
-     * @return
-     */
-    Optional<Time> findById(Long id);
-
-    /**
-     * @param id
-     */
-    void deleteById(Long id);
-
-    /**
-     * @param pageable
-     * @return
-     */
-    Page<Time> findAll(Pageable pageable);
-
-    long count();
 }
