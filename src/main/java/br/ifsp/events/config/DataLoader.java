@@ -19,6 +19,8 @@ import br.ifsp.events.repository.InscricaoRepository;
 import br.ifsp.events.repository.ModalidadeRepository;
 import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
+import br.ifsp.events.service.PartidaService;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,13 +45,14 @@ public class DataLoader implements CommandLineRunner {
     private final EventoRepository eventoRepository;
     private final EventoModalidadeRepository eventoModalidadeRepository;
     private final InscricaoRepository inscricaoRepository;
-
+    private final PartidaService partidaService; // <-- INJETADO
 
     public DataLoader(UserRepository userRepository, ModalidadeRepository modalidadeRepository, 
                       TimeRepository timeRepository, PasswordEncoder passwordEncoder,
                       EventoRepository eventoRepository,
                       EventoModalidadeRepository eventoModalidadeRepository,
-                      InscricaoRepository inscricaoRepository) {
+                      InscricaoRepository inscricaoRepository,
+                      PartidaService partidaService) { // <-- NO CONSTRUTOR
         this.userRepository = userRepository;
         this.modalidadeRepository = modalidadeRepository;
         this.timeRepository = timeRepository;
@@ -57,6 +60,7 @@ public class DataLoader implements CommandLineRunner {
         this.eventoRepository = eventoRepository;
         this.eventoModalidadeRepository = eventoModalidadeRepository;
         this.inscricaoRepository = inscricaoRepository;
+        this.partidaService = partidaService; // <-- ATRIBUÍDO
     }
 
     @Override
@@ -320,6 +324,17 @@ public class DataLoader implements CommandLineRunner {
                         "Não há times faker suficientes (necessário 3).");
         }
 
+         try {
+            logger.info("Gerando chave MATA-MATA para o Evento ID: {}", torneioAtual.getId());
+            partidaService.gerarChaveParaEvento(torneioAtual.getId(), FormatoEventoModalidade.MATA_MATA);
+            logger.info("Chave gerada com sucesso para o evento {}", torneioAtual.getId());
+        } catch (Exception e) {
+            logger.error("Falha ao gerar chave para evento {}: {}", torneioAtual.getId(), e.getMessage());
+        }
+
+        // add do evento finalizado partidas com placares e vencedores
+
         logger.info("Dados de teste carregados com sucesso (incluindo dados do Faker).");
     }
+
 }

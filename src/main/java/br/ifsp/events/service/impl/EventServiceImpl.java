@@ -218,6 +218,22 @@ public class EventServiceImpl implements EventService {
         return toInscricaoResponseDTO(savedInscricao);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<EventResponseDTO> listAll() {
+        return eventoRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventResponseDTO findById(Long id) {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento com ID " + id + " não encontrado."));
+        return toResponseDTO(evento);
+    }
+
     private void validateRegrasInscricao(EventoModalidade eventoModalidade, Long timeId) {
         LocalDate hoje = LocalDate.now();
 

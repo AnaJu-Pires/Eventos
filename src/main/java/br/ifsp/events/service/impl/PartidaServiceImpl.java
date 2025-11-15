@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.ifsp.events.dto.partida.PartidaResponseDTO;
+import br.ifsp.events.dto.partida.PartidaResultadoRequestDTO;
 import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.model.EventoModalidade;
 import br.ifsp.events.model.FormatoEventoModalidade;
@@ -46,6 +47,52 @@ public class PartidaServiceImpl implements PartidaService {
         this.partidaRepository = partidaRepository;
         this.eventoModalidadeRepository = eventoModalidadeRepository;
         this.inscricaoRepository = inscricaoRepository;
+    }
+
+    @Override
+    @Transactional
+    public void atualizarResultado(Long eventoId, Long partidaId, PartidaResultadoRequestDTO request) {
+        Partida partida = partidaRepository.findById(partidaId)
+                .orElseThrow(() -> new BusinessRuleException("Partida não encontrada: " + partidaId));
+
+        if (partida.getEventoModalidade() == null || partida.getEventoModalidade().getEvento() == null
+                || !Objects.equals(partida.getEventoModalidade().getEvento().getId(), eventoId)) {
+            throw new BusinessRuleException("Partida não pertence ao evento informado.");
+        }
+
+        if (partida.getStatusPartida() == StatusPartida.FINALIZADA) {
+            throw new BusinessRuleException("Partida já finalizada.");
+        }
+
+        int t1 = request.getTime1Placar();
+        int t2 = request.getTime2Placar();
+
+        if (t1 < 0 || t2 < 0) {
+            throw new BusinessRuleException("Placar não pode ser negativo.");
+        }
+
+        partida.setTime1Placar(t1);
+        partida.setTime2Placar(t2);
+
+        // Decide vencedor conforme formato
+        FormatoEventoModalidade formato = partida.getEventoModalidade().getFormatoEventoModalidade();
+
+        if (t1 > t2) {
+            partida.setVencedor(partida.getTime1());
+        } else if (t2 > t1) {
+            partida.setVencedor(partida.getTime2());
+        } else { // empate
+            if (formato == FormatoEventoModalidade.MATA_MATA) {
+                throw new BusinessRuleException("Empates não são permitidos em mata-mata.");
+            }
+            partida.setVencedor(null); // empate em pontos corridos
+        }
+
+        partida.setStatusPartida(StatusPartida.FINALIZADA);
+
+        partidaRepository.save(partida);
+        logger.info("Partida {} atualizada: {} x {}. Vencedor={}", partidaId, t1, t2,
+                (partida.getVencedor() != null ? partida.getVencedor().getId() : null));
     }
 
     @Override
