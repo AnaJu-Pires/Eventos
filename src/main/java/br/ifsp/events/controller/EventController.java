@@ -111,6 +111,32 @@ public class EventController {
         return ResponseEntity.ok(partidas);
     }
 
+    @Operation(summary = "Lista todos os eventos", description = "Retorna todos os eventos (sem partidas).")
+    @GetMapping
+    public ResponseEntity<java.util.List<EventResponseDTO>> getAllEvents() {
+        java.util.List<EventResponseDTO> events = eventService.listAll();
+        return ResponseEntity.ok(events);
+    }
+
+    @Operation(summary = "Detalha um evento", description = "Retorna um evento com seus dados e partidas associadas.")
+    @GetMapping("/{id}")
+    public ResponseEntity<EventResponseDTO> getEventWithPartidas(@PathVariable Long id) {
+        EventResponseDTO event = eventService.findById(id);
+        // carregar partidas do evento
+        java.util.List<PartidaResponseDTO> partidas = partidaService.listByEvento(id);
+        event.setPartidas(partidas);
+        return ResponseEntity.ok(event);
+    }
+
+    @Operation(summary = "Atualiza resultado de uma partida", description = "Atualiza os placares de uma partida e define vencedor/status. Requer permissões de gestor.")
+    @PatchMapping("/{eventoId}/partidas/{partidaId}/resultado")
+    @PreAuthorize("hasRole('GESTOR_EVENTOS')")
+    public ResponseEntity<Void> atualizarResultado(@PathVariable Long eventoId, @PathVariable Long partidaId,
+            @RequestBody @Valid br.ifsp.events.dto.partida.PartidaResultadoRequestDTO request) {
+        partidaService.atualizarResultado(eventoId, partidaId, request);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Gera chave de confrontos (ex.: mata-mata ou pontos corridos)", 
                description = "Gera automaticamente a chave de confrontos para as modalidades do evento no formato solicitado. Requer permissões de gestor e que as inscrições estejam fechadas.")
     @PostMapping("/{id}/gerar-chave")

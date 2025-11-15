@@ -16,4 +16,14 @@ public interface EventService {
 
     InscricaoResponseDTO inscreverTime(Long eventoId, Long timeId);
 
+    /**
+     * Lista todos os eventos do sistema.
+     */
+    java.util.List<EventResponseDTO> listAll();
+
+    /**
+     * Busca um evento pelo id.
+     */
+    EventResponseDTO findById(Long id);
+
 }
