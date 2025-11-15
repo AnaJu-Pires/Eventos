@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Post {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,6 +46,7 @@ public class Post {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
+    @Builder.Default 
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     private int votos = 0;
 }

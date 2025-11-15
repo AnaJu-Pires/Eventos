@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Comentario {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,6 +45,7 @@ public class Comentario {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
+    @Builder.Default
     @Column(nullable = false, columnDefinition = "INT DEFAULT 0")
     private int votos = 0;
 }
