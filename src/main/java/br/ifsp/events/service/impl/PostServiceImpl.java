@@ -80,6 +80,14 @@ public class PostServiceImpl implements PostService {
         return toResponseDTO(post);
     }
 
+    @Override
+    public void deletePost(Long postId) {
+        postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post com ID " + postId + " não encontrado."));
+        
+        postRepository.deleteById(postId);
+    }
+
     private PostResponseDTO toResponseDTO(Post post) {
         return PostResponseDTO.builder()
                 .id(post.getId())

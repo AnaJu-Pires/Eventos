@@ -2,6 +2,7 @@ package br.ifsp.events.service.impl;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,6 +76,21 @@ public class ComentarioServiceImpl implements ComentarioService {
 
         return comentarios.map(this::toResponseDTO);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public void deleteComentario(Long postId, Long comentarioId) {
+        postRepository.findById(postId)
+            .orElseThrow(() -> new ResourceNotFoundException("Post com ID " + postId + " não encontrado."));
+        
+        comentarioRepository.findByIdAndPostId(comentarioId, postId)
+            .orElseThrow(() -> new ResourceNotFoundException("Comentário com ID " + comentarioId + " não encontrado para o post com ID " + postId));
+
+        comentarioRepository.deleteById(comentarioId);
+    }
+
+
 
     private ComentarioResponseDTO toResponseDTO(Comentario comentario) {
         return ComentarioResponseDTO.builder()

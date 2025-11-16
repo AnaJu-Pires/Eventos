@@ -15,6 +15,7 @@ import br.ifsp.events.service.GamificationService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +72,17 @@ public class ComunidadeServiceImpl implements ComunidadeService{
         
         return toResponseDTO(comunidade);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public void deleteComunidade(Long comunidadeId) {
+        comunidadeRepository.findById(comunidadeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Comunidade com ID " + comunidadeId + " não encontrada."));
+        
+        comunidadeRepository.deleteById(comunidadeId);
+    }
+
 
     private ComunidadeResponseDTO toResponseDTO(Comunidade comunidade){
         return ComunidadeResponseDTO.builder()

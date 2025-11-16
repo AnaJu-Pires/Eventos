@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -86,6 +87,27 @@ public class UserController {
         
         UserResponseDTO updatedUser = userService.updateUserRole(id, roleUpdateDTO);
         return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(summary = "Exclui o perfil de um usuário (Admin)", description = "Permite que um administrador (`ADMIN`) remova o perfil de qualquer usuário no sistema.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Perfil do usuário removido com sucesso",
+            content = @Content(mediaType = "application/json", 
+                         schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos (ex: perfil não existente)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Não autenticado. Token não fornecido ou inválido",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Acesso negado. Apenas usuários com o perfil 'ADMIN' podem executar esta ação",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Usuário com o ID especificado não encontrado",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Busca as modalidades de interesse do usuário logado", 

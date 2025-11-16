@@ -71,6 +71,15 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     @Transactional
+    public void deleteById(Long id) {
+        User user = entityManager.find(User.class, id);
+        if (user != null) {
+            entityManager.remove(user);
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteAll(List<User> users) {
         for (User user : users) {
             // garante que o usuário foi carregado antes de ser removido
