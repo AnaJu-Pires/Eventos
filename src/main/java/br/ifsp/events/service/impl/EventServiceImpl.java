@@ -34,6 +34,7 @@ import br.ifsp.events.repository.ModalidadeRepository;
 import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.EventService;
+import br.ifsp.events.service.NotificationService;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -44,19 +45,22 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final TimeRepository timeRepository;
     private final InscricaoRepository inscricaoRepository;
+    private final NotificationService notificationService; // <-- adicionada
 
     public EventServiceImpl(EventoRepository eventoRepository,
                             ModalidadeRepository modalidadeRepository,
                             EventoModalidadeRepository eventoModalidadeRepository,
                             UserRepository userRepository,
                             TimeRepository timeRepository,
-                            InscricaoRepository inscricaoRepository) {
+                            InscricaoRepository inscricaoRepository,
+                            NotificationService notificationService) { // <-- adicionado
         this.eventoRepository = eventoRepository;
         this.modalidadeRepository = modalidadeRepository;
         this.eventoModalidadeRepository = eventoModalidadeRepository;
         this.userRepository = userRepository;
         this.timeRepository = timeRepository;
         this.inscricaoRepository = inscricaoRepository;
+        this.notificationService = notificationService; // <-- adicionado
     }
 
     @Override
@@ -81,6 +85,9 @@ public class EventServiceImpl implements EventService {
         Set<EventoModalidade> eventoModalidades = buildEventoModalidades(eventRequestDTO.getModalidades(), savedEvento);
         eventoModalidadeRepository.saveAll(eventoModalidades);
         savedEvento.setEventoModalidades(eventoModalidades);
+
+        // Notificação de evento criado
+        notificationService.notifyEventCreated(savedEvento);
 
         return toResponseDTO(savedEvento);
     }
@@ -109,6 +116,10 @@ public class EventServiceImpl implements EventService {
         evento.setEventoModalidades(eventoModalidades);
 
         Evento updated = eventoRepository.save(evento);
+
+        // Notificação de evento atualizado
+        notificationService.notifyEventUpdated(updated);
+
         return toResponseDTO(updated);
     }
 
@@ -134,38 +145,40 @@ public class EventServiceImpl implements EventService {
         evento.setDataFim(novaDataFim);
 
         eventPatchDTO.getModalidades().ifPresent(modalidadesDTO -> {
-        Set<EventoModalidade> eventoModalidades = evento.getEventoModalidades();
+            Set<EventoModalidade> eventoModalidades = evento.getEventoModalidades();
 
-        for (EventoModalidadePatchDTO dto : modalidadesDTO) {
-            Modalidade modalidade = modalidadeRepository.findById(dto.getModalidadeId())
-                    .orElseThrow(() -> new BusinessRuleException(
-                            "Modalidade com ID " + dto.getModalidadeId() + " não encontrada."));
+            for (EventoModalidadePatchDTO dto : modalidadesDTO) {
+                Modalidade modalidade = modalidadeRepository.findById(dto.getModalidadeId())
+                        .orElseThrow(() -> new BusinessRuleException(
+                                "Modalidade com ID " + dto.getModalidadeId() + " não encontrada."));
 
-            EventoModalidade em = eventoModalidades.stream()
-                    .filter(existing -> existing.getModalidade().getId().equals(dto.getModalidadeId()))
-                    .findFirst()
-                    .orElseGet(() -> {
-                        EventoModalidade novo = new EventoModalidade();
-                        novo.setEvento(evento);
-                        novo.setModalidade(modalidade);
-                        eventoModalidades.add(novo);
-                        return novo;
-                    });
+                EventoModalidade em = eventoModalidades.stream()
+                        .filter(existing -> existing.getModalidade().getId().equals(dto.getModalidadeId()))
+                        .findFirst()
+                        .orElseGet(() -> {
+                            EventoModalidade novo = new EventoModalidade();
+                            novo.setEvento(evento);
+                            novo.setModalidade(modalidade);
+                            eventoModalidades.add(novo);
+                            return novo;
+                        });
 
-            if (dto.getMaxTimes() != 0) em.setMaxTimes(dto.getMaxTimes());
-            if (dto.getDataFimInscricao() != null) em.setDataFimInscricao(dto.getDataFimInscricao());
-            if (dto.getFormatoEventoModalidade() != null) em.setFormatoEventoModalidade(dto.getFormatoEventoModalidade());
-        }
+                if (dto.getMaxTimes() != 0) em.setMaxTimes(dto.getMaxTimes());
+                if (dto.getDataFimInscricao() != null) em.setDataFimInscricao(dto.getDataFimInscricao());
+                if (dto.getFormatoEventoModalidade() != null) em.setFormatoEventoModalidade(dto.getFormatoEventoModalidade());
+            }
 
-        eventoModalidadeRepository.saveAll(eventoModalidades);
-        evento.setEventoModalidades(eventoModalidades);
-    });
-
+            eventoModalidadeRepository.saveAll(eventoModalidades);
+            evento.setEventoModalidades(eventoModalidades);
+        });
 
         Evento patched = eventoRepository.save(evento);
+
+        // Notificação de evento atualizado
+        notificationService.notifyEventUpdated(patched);
+
         return toResponseDTO(patched);
     }
-
 
     @Override
     @Transactional
@@ -179,7 +192,10 @@ public class EventServiceImpl implements EventService {
             eventoRepository.delete(evento);
         } else {
             evento.setStatus(StatusEvento.CANCELADO);
-            eventoRepository.save(evento);
+            Evento cancelled = eventoRepository.save(evento);
+
+            // Notificação de evento cancelado
+            notificationService.notifyEventCancelled(cancelled);
         }
     }
 
