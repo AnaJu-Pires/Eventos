@@ -2,14 +2,12 @@ package br.ifsp.events.service.impl;
 
 import br.ifsp.events.dto.comunidade.ComunidadeCreateDTO;
 import br.ifsp.events.dto.comunidade.ComunidadeResponseDTO;
-import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.exception.DuplicateResourceException; 
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Comunidade;
 import br.ifsp.events.model.TipoAcaoGamificacao; 
 import br.ifsp.events.model.User;
 import br.ifsp.events.repository.ComunidadeRepository;
-import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.ComunidadeService;
 import br.ifsp.events.service.GamificationService;
 
@@ -17,6 +15,7 @@ import br.ifsp.events.service.GamificationService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,12 +23,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ComunidadeServiceImpl implements ComunidadeService{
     private final ComunidadeRepository comunidadeRepository;
-    private final UserRepository userRepository;
     private final GamificationService gamificationService;
 
-    public ComunidadeServiceImpl(ComunidadeRepository comunidadeRepository, UserRepository userRepository, GamificationService gamificationService) {
+    public ComunidadeServiceImpl(ComunidadeRepository comunidadeRepository, GamificationService gamificationService) {
         this.comunidadeRepository = comunidadeRepository;
-        this.userRepository = userRepository;
         this.gamificationService = gamificationService;
     }
     
@@ -75,6 +72,17 @@ public class ComunidadeServiceImpl implements ComunidadeService{
         
         return toResponseDTO(comunidade);
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public void deleteComunidade(Long comunidadeId) {
+        comunidadeRepository.findById(comunidadeId)
+            .orElseThrow(() -> new ResourceNotFoundException("Comunidade com ID " + comunidadeId + " não encontrada."));
+        
+        comunidadeRepository.deleteById(comunidadeId);
+    }
+
 
     private ComunidadeResponseDTO toResponseDTO(Comunidade comunidade){
         return ComunidadeResponseDTO.builder()

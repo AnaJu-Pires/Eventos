@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,7 @@ import br.ifsp.events.dto.comunidade.ComunidadeCreateDTO;
 import br.ifsp.events.dto.comunidade.ComunidadeResponseDTO;
 import br.ifsp.events.dto.post.PostCreateDTO;
 import br.ifsp.events.dto.post.PostResponseDTO;
+import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.service.ComunidadeService;
 import br.ifsp.events.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -133,4 +135,26 @@ public class ComunidadeController {
         
         return ResponseEntity.ok(postService.listByComunidade(comunidadeId, pageable));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Deleta uma comuniade (Admin)", description = "Permite que um administrador (`ADMIN`) delete uma comunidade do sistema")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Comunidade removida com sucesso",
+            content = @Content(mediaType = "application/json", 
+                         schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos (ex: comunidade não existente)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Não autenticado. Token não fornecido ou inválido",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Acesso negado. Apenas usuários com o perfil 'ADMIN' podem executar esta ação",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Comunidade não encontrada",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<Void> deleteComunidade(@PathVariable Long id) {
+        comunidadeService.deleteComunidade(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

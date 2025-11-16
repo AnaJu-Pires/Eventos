@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.ifsp.events.dto.partida.PartidaResponseDTO;
+import br.ifsp.events.dto.partida.PartidaResultadoRequestDTO;
 import br.ifsp.events.exception.BusinessRuleException;
+import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.EventoModalidade;
 import br.ifsp.events.model.FormatoEventoModalidade;
 import br.ifsp.events.model.Inscricao;
@@ -24,6 +26,7 @@ import br.ifsp.events.model.Time;
 import br.ifsp.events.repository.EventoModalidadeRepository;
 import br.ifsp.events.repository.InscricaoRepository;
 import br.ifsp.events.repository.PartidaRepository;
+import br.ifsp.events.service.NotificationService;
 import br.ifsp.events.service.PartidaService;
 
 /**
@@ -39,13 +42,63 @@ public class PartidaServiceImpl implements PartidaService {
     private final PartidaRepository partidaRepository;
     private final EventoModalidadeRepository eventoModalidadeRepository;
     private final InscricaoRepository inscricaoRepository;
+    private final NotificationService notificationService;
 
-    public PartidaServiceImpl(PartidaRepository partidaRepository,
+    public PartidaServiceImpl(
+            PartidaRepository partidaRepository,
             EventoModalidadeRepository eventoModalidadeRepository,
-            InscricaoRepository inscricaoRepository) {
+            InscricaoRepository inscricaoRepository,
+            NotificationService notificationService) {
         this.partidaRepository = partidaRepository;
         this.eventoModalidadeRepository = eventoModalidadeRepository;
         this.inscricaoRepository = inscricaoRepository;
+        this.notificationService = notificationService;
+    }
+
+    @Override
+    @Transactional
+    public void atualizarResultado(Long eventoId, Long partidaId, PartidaResultadoRequestDTO request) {
+        Partida partida = partidaRepository.findById(partidaId)
+                .orElseThrow(() -> new BusinessRuleException("Partida não encontrada: " + partidaId));
+
+        if (partida.getEventoModalidade() == null || partida.getEventoModalidade().getEvento() == null
+                || !Objects.equals(partida.getEventoModalidade().getEvento().getId(), eventoId)) {
+            throw new BusinessRuleException("Partida não pertence ao evento informado.");
+        }
+
+        if (partida.getStatusPartida() == StatusPartida.FINALIZADA) {
+            throw new BusinessRuleException("Partida já finalizada.");
+        }
+
+        int t1 = request.getTime1Placar();
+        int t2 = request.getTime2Placar();
+
+        if (t1 < 0 || t2 < 0) {
+            throw new BusinessRuleException("Placar não pode ser negativo.");
+        }
+
+        partida.setTime1Placar(t1);
+        partida.setTime2Placar(t2);
+
+        // Decide vencedor conforme formato
+        FormatoEventoModalidade formato = partida.getEventoModalidade().getFormatoEventoModalidade();
+
+        if (t1 > t2) {
+            partida.setVencedor(partida.getTime1());
+        } else if (t2 > t1) {
+            partida.setVencedor(partida.getTime2());
+        } else { // empate
+            if (formato == FormatoEventoModalidade.MATA_MATA) {
+                throw new BusinessRuleException("Empates não são permitidos em mata-mata.");
+            }
+            partida.setVencedor(null); // empate em pontos corridos
+        }
+
+        partida.setStatusPartida(StatusPartida.FINALIZADA);
+
+        partidaRepository.save(partida);
+        logger.info("Partida {} atualizada: {} x {}. Vencedor={}", partidaId, t1, t2,
+                (partida.getVencedor() != null ? partida.getVencedor().getId() : null));
     }
 
     @Override
@@ -164,4 +217,21 @@ public class PartidaServiceImpl implements PartidaService {
                 .vencedorNome(vencedorNome)
                 .build();
     }
+
+    @Override
+    @Transactional
+    public Partida updatePartidaStatus(Long partidaId, StatusPartida novoStatus) {
+        Partida partida = partidaRepository.findById(partidaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Partida não encontrada"));
+
+        partida.setStatusPartida(novoStatus);
+        Partida updated = partidaRepository.save(partida);
+
+        if (novoStatus == StatusPartida.FINALIZADA) {
+            notificationService.notifyMatchFinalized(updated);
+        }
+
+        return updated;
+    }
+
 }

@@ -13,4 +13,6 @@ public interface PostService {
     Page<PostResponseDTO> listByComunidade(Long comunidadeId, Pageable pageable);
 
     PostResponseDTO findById(Long postId);
+
+    void deletePost(Long postId);
 }

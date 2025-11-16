@@ -1,8 +1,9 @@
 package br.ifsp.events.service;
 
+import java.util.List;
+
 import br.ifsp.events.dto.comunidade.ComunidadeCreateDTO;
 import br.ifsp.events.dto.comunidade.ComunidadeResponseDTO;
-import java.util.List;
 
 public interface ComunidadeService {
     
@@ -11,4 +12,6 @@ public interface ComunidadeService {
     List<ComunidadeResponseDTO> listAll();
 
     ComunidadeResponseDTO findById(Long id);
+
+    void deleteComunidade(Long comunidadeId);
 }

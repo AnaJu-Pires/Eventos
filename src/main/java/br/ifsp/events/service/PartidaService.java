@@ -3,7 +3,10 @@ package br.ifsp.events.service;
 import java.util.List;
 
 import br.ifsp.events.dto.partida.PartidaResponseDTO;
+import br.ifsp.events.dto.partida.PartidaResultadoRequestDTO;
 import br.ifsp.events.model.FormatoEventoModalidade;
+import br.ifsp.events.model.Partida;
+import br.ifsp.events.model.StatusPartida;
 
 public interface PartidaService {
 
@@ -20,4 +23,14 @@ public interface PartidaService {
      */
     // ADICIONE ESTE MÉTODO:
     void gerarChaveParaEvento(Long eventoId, FormatoEventoModalidade formato);
+
+    /**
+     * Atualiza o resultado de uma partida (placares) e persiste o vencedor/status.
+     * @param eventoId id do evento que contém a partida
+     * @param partidaId id da partida a ser atualizada
+     * @param request DTO com os placares
+     */
+    void atualizarResultado(Long eventoId, Long partidaId, PartidaResultadoRequestDTO request);
+
+    Partida updatePartidaStatus(Long partidaId, StatusPartida novoStatus);
 }

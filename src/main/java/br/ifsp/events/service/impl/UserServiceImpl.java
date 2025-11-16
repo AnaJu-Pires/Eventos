@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
 import br.ifsp.events.dto.user.UserInteresseResponseDTO;
 import br.ifsp.events.dto.user.UserInteresseUpdateDTO;
@@ -218,6 +220,17 @@ public class UserServiceImpl implements UserService {
             throw new CsvGenerationException("Erro ao escrever dados no arquivo CSV.");
         }
     }
+
+    @Override
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional
+    public void deleteUser(Long userId) {
+        userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuário com ID " + userId + " não encontrado."));
+        
+        userRepository.deleteById(userId);
+    }
+
 
     private UserResponseDTO toResponseDTO(User user) {
         return modelMapper.map(user, UserResponseDTO.class);

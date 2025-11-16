@@ -1,13 +1,15 @@
 package br.ifsp.events.service.impl;
 
-import br.ifsp.events.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import br.ifsp.events.service.EmailService;
 
 @Service
 public class EmailServiceImpl implements EmailService {
@@ -46,5 +48,22 @@ public class EmailServiceImpl implements EmailService {
         
         mailSender.send(message);
         logger.info("Email de confirmação enviado com sucesso para: {}", to);
+    }
+
+    @Override
+    @Async
+    public void sendEmail(String to, String subject, String body) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(body);
+
+            mailSender.send(message);
+            logger.info("Email enviado com sucesso para: {}", to);
+        } catch (MailException e) {
+            logger.error("Falha ao enviar email para {}: {}", to, e.getMessage());
+        }
     }
 }

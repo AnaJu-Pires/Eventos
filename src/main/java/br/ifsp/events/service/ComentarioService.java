@@ -11,4 +11,6 @@ public interface ComentarioService {
     ComentarioResponseDTO create(ComentarioCreateDTO dto, Long postId);
 
     Page<ComentarioResponseDTO> listByPost(Long postId, Pageable pageable);
+
+    void deleteComentario(Long postId, Long comentarioId);
 }

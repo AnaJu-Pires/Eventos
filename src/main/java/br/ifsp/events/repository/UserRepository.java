@@ -45,6 +45,12 @@ public interface UserRepository {
     List<User> findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now);
     
     /**
+     * deleta um usuário pelo seu ID.
+     * @param id
+     */
+    void deleteById(Long id);
+
+    /**
      * deleta uma lista de usuários do banco
      * @param users
      */
