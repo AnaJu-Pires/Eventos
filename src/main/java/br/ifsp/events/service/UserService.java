@@ -45,4 +45,6 @@ public interface UserService extends UserDetailsService {
     UserInteresseResponseDTO updateUserInteresses(Long userId, UserInteresseUpdateDTO interessesDTO);
 
     void writeUsersCsv(Writer writer);
+
+    void deleteUser(Long userId);
 }

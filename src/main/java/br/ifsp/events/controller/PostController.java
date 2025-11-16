@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +22,7 @@ import br.ifsp.events.dto.ErrorResponse;
 import br.ifsp.events.dto.comentario.ComentarioCreateDTO;
 import br.ifsp.events.dto.comentario.ComentarioResponseDTO;
 import br.ifsp.events.dto.post.PostResponseDTO;
+import br.ifsp.events.dto.user.UserResponseDTO;
 import br.ifsp.events.service.ComentarioService;
 import br.ifsp.events.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -103,4 +105,51 @@ public class PostController {
         
         return ResponseEntity.ok(comentarioService.listByPost(postId, pageable));
     }
+
+    @DeleteMapping("/{postId}/comentarios/{comentarioId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Deleta um comentário (Admin)", description = "Permite que um administrador (`ADMIN`) delete um comentário do sistema")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Comentário removido com sucesso",
+            content = @Content(mediaType = "application/json", 
+                         schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos (ex: comentário não existente)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Não autenticado. Token não fornecido ou inválido",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Acesso negado. Apenas usuários com o perfil 'ADMIN' podem executar esta ação",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Comentário não encontrado",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<Void> deleteComentario(
+            @Parameter(description = "ID do post que contém o comentário") @PathVariable Long postId,
+            @Parameter(description = "ID do comentário a ser deletado") @PathVariable Long comentarioId) {
+
+        comentarioService.deleteComentario(postId, comentarioId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Operation(summary = "Deleta um post (Admin)", description = "Permite que um administrador (`ADMIN`) delete um post do sistema, incluindo todos os comentários relacionados.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Post removido com sucesso",
+            content = @Content(mediaType = "application/json", 
+                         schema = @Schema(implementation = UserResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos (ex: post não existente)",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "401", description = "Não autenticado. Token não fornecido ou inválido",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "403", description = "Acesso negado. Apenas usuários com o perfil 'ADMIN' podem executar esta ação",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Post não encontrado",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+        postService.deletePost(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }
