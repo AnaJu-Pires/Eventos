@@ -5,6 +5,8 @@ import java.util.List;
 import br.ifsp.events.dto.partida.PartidaResponseDTO;
 import br.ifsp.events.dto.partida.PartidaResultadoRequestDTO;
 import br.ifsp.events.model.FormatoEventoModalidade;
+import br.ifsp.events.model.Partida;
+import br.ifsp.events.model.StatusPartida;
 
 public interface PartidaService {
 
@@ -29,4 +31,6 @@ public interface PartidaService {
      * @param request DTO com os placares
      */
     void atualizarResultado(Long eventoId, Long partidaId, PartidaResultadoRequestDTO request);
+
+    Partida updatePartidaStatus(Long partidaId, StatusPartida novoStatus);
 }
