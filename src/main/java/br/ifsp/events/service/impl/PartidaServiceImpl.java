@@ -26,6 +26,7 @@ import br.ifsp.events.model.Time;
 import br.ifsp.events.repository.EventoModalidadeRepository;
 import br.ifsp.events.repository.InscricaoRepository;
 import br.ifsp.events.repository.PartidaRepository;
+import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.service.NotificationService;
 import br.ifsp.events.service.PartidaService;
 
@@ -43,16 +44,19 @@ public class PartidaServiceImpl implements PartidaService {
     private final EventoModalidadeRepository eventoModalidadeRepository;
     private final InscricaoRepository inscricaoRepository;
     private final NotificationService notificationService;
+    private final TimeRepository timeRepository;
 
     public PartidaServiceImpl(
             PartidaRepository partidaRepository,
             EventoModalidadeRepository eventoModalidadeRepository,
             InscricaoRepository inscricaoRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TimeRepository timeRepository) {
         this.partidaRepository = partidaRepository;
         this.eventoModalidadeRepository = eventoModalidadeRepository;
         this.inscricaoRepository = inscricaoRepository;
         this.notificationService = notificationService;
+        this.timeRepository = timeRepository;
     }
 
     @Override
@@ -85,16 +89,26 @@ public class PartidaServiceImpl implements PartidaService {
 
         if (t1 > t2) {
             partida.setVencedor(partida.getTime1());
+            partida.getTime1().incrementaVitoria(); 
+            partida.getTime2().incrementaPartida();
         } else if (t2 > t1) {
             partida.setVencedor(partida.getTime2());
+            partida.getTime2().incrementaVitoria();
+            partida.getTime1().incrementaPartida();
         } else { // empate
             if (formato == FormatoEventoModalidade.MATA_MATA) {
                 throw new BusinessRuleException("Empates não são permitidos em mata-mata.");
             }
             partida.setVencedor(null); // empate em pontos corridos
+            partida.getTime1().incrementaPartida();
+            partida.getTime2().incrementaPartida();
         }
 
         partida.setStatusPartida(StatusPartida.FINALIZADA);
+
+        partidaRepository.save(partida);
+        timeRepository.save(partida.getTime1());
+        timeRepository.save(partida.getTime2());
 
         partidaRepository.save(partida);
         logger.info("Partida {} atualizada: {} x {}. Vencedor={}", partidaId, t1, t2,
