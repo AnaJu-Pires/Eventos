@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "DTO para exibir os interesses (modalidades) de um usuário")
 public class UserInteresseResponseDTO {
 
-    @Schema(description = "Lista de modalidades que o usuário tem interesse")
+    @Schema(description = "Lista de modalidades que o usuário tem interesse", example = "[{\"id\":1,\"nome\":\"Futebol\",\"descricao\":\"Modalidade de futebol de campo.\"}]")
     private List<ModalidadeResponseDTO> interesses;
 }

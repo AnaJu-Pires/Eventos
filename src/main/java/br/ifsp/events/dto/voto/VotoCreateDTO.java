@@ -9,10 +9,10 @@ import lombok.Data;
 @Schema(description = "DTO para registrar um novo voto em um post ou comentário")
 public class VotoCreateDTO {
 
-    @Schema(description = "O ID do Post que está sendo votado. Nulo se for um voto em comentário.")
+    @Schema(description = "O ID do Post que está sendo votado. Nulo se for um voto em comentário.", example = "1")
     private Long postId;
 
-    @Schema(description = "O ID do Comentário que está sendo votado. Nulo se for um voto em post.")
+    @Schema(description = "O ID do Comentário que está sendo votado. Nulo se for um voto em post.", example = "1")
     private Long comentarioId;
 
     @NotNull(message = "O tipo de voto (UPVOTE ou DOWNVOTE) é obrigatório")

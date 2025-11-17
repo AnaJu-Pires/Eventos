@@ -29,9 +29,11 @@ import br.ifsp.events.service.InscricaoService;
 import br.ifsp.events.service.PartidaService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/events")
+@Tag(name = "Eventos", description = "Endpoints para gerenciamento de eventos esportivos")
 public class EventController {
 
     private final EventService eventService;

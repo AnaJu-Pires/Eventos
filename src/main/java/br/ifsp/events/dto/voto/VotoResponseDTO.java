@@ -10,9 +10,9 @@ import lombok.Data;
 @Schema(description = "Resposta do servidor após um voto ser processado")
 public class VotoResponseDTO {
 
-    @Schema(description = "O novo placar de votos do conteúdo (upvotes - downvotes)")
+    @Schema(description = "O novo placar de votos do conteúdo (upvotes - downvotes)", example = "5")
     private int novoPlacar;
 
-    @Schema(description = "O voto atual do usuário naquele conteúdo (UPVOTE, DOWNVOTE, or null se o voto foi removido)")
+    @Schema(description = "O voto atual do usuário naquele conteúdo (UPVOTE, DOWNVOTE, or null se o voto foi removido)", example = "UPVOTE")
     private TipoVoto seuVoto; 
 }
