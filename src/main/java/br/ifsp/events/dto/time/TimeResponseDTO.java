@@ -1,12 +1,13 @@
 package br.ifsp.events.dto.time;
 
+import java.util.Set;
+
 import br.ifsp.events.dto.modalidade.ModalidadeResponseDTO;
 import br.ifsp.events.dto.user.UserResponseDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -23,4 +24,6 @@ public class TimeResponseDTO {
     private ModalidadeResponseDTO modalidade;
     @Schema(description = "Membros do time")
     private Set<UserResponseDTO> membros;
+    @Schema(description = "Taxa de vitórias do time")
+    private double winRate;
 }

@@ -1,10 +1,17 @@
 package br.ifsp.events.service.impl;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import br.ifsp.events.dto.convite.ConviteCreateDTO;
 import br.ifsp.events.dto.time.CapitaoTransferDTO;
 import br.ifsp.events.dto.time.TimeCreateDTO;
-import br.ifsp.events.dto.time.TimeUpdateDTO;
 import br.ifsp.events.dto.time.TimeResponseDTO;
+import br.ifsp.events.dto.time.TimeUpdateDTO;
 import br.ifsp.events.exception.BusinessRuleException;
 import br.ifsp.events.exception.ResourceNotFoundException;
 import br.ifsp.events.model.Convite;
@@ -17,12 +24,6 @@ import br.ifsp.events.repository.ModalidadeRepository;
 import br.ifsp.events.repository.TimeRepository;
 import br.ifsp.events.repository.UserRepository;
 import br.ifsp.events.service.TimeService;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TimeServiceImpl implements TimeService {
@@ -58,6 +59,9 @@ public class TimeServiceImpl implements TimeService {
         newTime.setNome(createDTO.getNome());
         newTime.setCapitao(capitao);
         newTime.setModalidade(modalidade);
+
+        newTime.setQtdVitorias(0);
+        newTime.setQtdPartidas(0);
         
         newTime.getMembros().add(capitao); 
         
@@ -165,7 +169,9 @@ public class TimeServiceImpl implements TimeService {
     }
 
     private TimeResponseDTO toResponseDTO(Time time) {
-        return modelMapper.map(time, TimeResponseDTO.class);
+        TimeResponseDTO dto = modelMapper.map(time, TimeResponseDTO.class);
+        dto.setWinRate(time.getWinRate());
+        return dto;
     }
 
     @Override
