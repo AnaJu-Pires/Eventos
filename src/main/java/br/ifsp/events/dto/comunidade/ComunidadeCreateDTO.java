@@ -3,9 +3,13 @@ package br.ifsp.events.dto.comunidade;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Schema(description = "DTO para criação de uma nova Comunidade")
 public class ComunidadeCreateDTO {
     @NotBlank(message = "O nome é obrigatório")

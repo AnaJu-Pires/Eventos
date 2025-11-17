@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 import br.ifsp.events.dto.inscricao.InscricaoResponseDTO;
 import br.ifsp.events.service.InscricaoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/inscricoes")
+@Tag(name = "Inscrições", description = "Endpoints para gerenciamento de inscrições em eventos esportivos")
 public class InscricaoController {
 
     private final InscricaoService inscricaoService;
