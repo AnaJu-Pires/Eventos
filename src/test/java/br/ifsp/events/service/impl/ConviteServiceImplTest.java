@@ -84,7 +84,7 @@ class ConviteServiceImplTest {
 
         // Mock: Autenticação
         authMock = mock(Authentication.class);
-        when(authMock.getPrincipal()).thenReturn(usuarioLogado);
+        lenient().when(authMock.getPrincipal()).thenReturn(usuarioLogado);
     }
 
 
