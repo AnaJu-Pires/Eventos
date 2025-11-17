@@ -48,7 +48,7 @@ class EventResponseDTOTest {
         LocalDate data = LocalDate.now();
 
         EventResponseDTO dto = new EventResponseDTO(
-                2L, "Evento2", "Desc2", data, data, StatusEvento.FINALIZADO, "Org", new HashSet<>()
+            2L, "Evento2", "Desc2", data, data, StatusEvento.FINALIZADO, "Org", new HashSet<>(), null
         );
 
         assertEquals(2L, dto.getId());

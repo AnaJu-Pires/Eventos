@@ -69,7 +69,7 @@ class TimeServiceImplTest {
         capitaoFixture = new User();
         capitaoFixture.setId(1L);
         capitaoFixture.setNome("João Capitão");
-        capitaoFixture.setEmail("joao@test.com");
+        capitaoFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: Modalidade
         modalidadeFixture = new Modalidade();

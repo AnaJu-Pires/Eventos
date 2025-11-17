@@ -69,7 +69,7 @@ class ConviteServiceImplTest {
         usuarioFixture = new User();
         usuarioFixture.setId(1L);
         usuarioFixture.setNome("João Convidado");
-        usuarioFixture.setEmail("joao@test.com");
+        usuarioFixture.setEmail("joao@aluno.ifsp.edu.br");
         usuarioFixture.setTimesQueParticipo(new HashSet<>());
 
         // Fixture: User (Capitão)

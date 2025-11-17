@@ -74,7 +74,7 @@ class ComentarioServiceImplTest {
         autorFixture = new User();
         autorFixture.setId(1L);
         autorFixture.setNome("João Comentarista");
-        autorFixture.setEmail("joao@test.com");
+        autorFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: User (Autor do post)
         autorPostFixture = new User();

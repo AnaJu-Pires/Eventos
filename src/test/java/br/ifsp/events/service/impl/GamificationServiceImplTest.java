@@ -39,7 +39,7 @@ class GamificationServiceImplTest {
         usuarioFixture = new User();
         usuarioFixture.setId(1L);
         usuarioFixture.setNome("João Gamer");
-        usuarioFixture.setEmail("joao@test.com");
+        usuarioFixture.setEmail("joao@aluno.ifsp.edu.br");
         usuarioFixture.setPontosSaldo(100L);
         usuarioFixture.setPontosRecorde(150L);
         usuarioFixture.setNivel(NivelEngajamento.BRONZE);

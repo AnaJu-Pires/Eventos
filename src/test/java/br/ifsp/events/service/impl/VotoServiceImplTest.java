@@ -68,7 +68,7 @@ class VotoServiceImplTest {
         votanteFixture = new User();
         votanteFixture.setId(1L);
         votanteFixture.setNome("João Votante");
-        votanteFixture.setEmail("joao@test.com");
+        votanteFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: User (Autor do post)
         autorPostFixture = new User();

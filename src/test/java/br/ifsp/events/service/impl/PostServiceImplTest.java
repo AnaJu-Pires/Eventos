@@ -75,7 +75,7 @@ class PostServiceImplTest {
         autorFixture = new User();
         autorFixture.setId(1L);
         autorFixture.setNome("João Author");
-        autorFixture.setEmail("joao@test.com");
+        autorFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: User (Criador da comunidade)
         criadorFixture = new User();

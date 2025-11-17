@@ -68,7 +68,7 @@ class EventServiceImplTest {
         organizadorFixture = new User();
         organizadorFixture.setId(1L);
         organizadorFixture.setNome("João Organizador");
-        organizadorFixture.setEmail("joao@test.com");
+        organizadorFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: Modalidade
         modalidadeFixture = new Modalidade();
@@ -91,8 +91,8 @@ class EventServiceImplTest {
     void criarEvento_comDadosValidos_retornaDTO() {
         // Arrange
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("joao@test.com");
-        when(userRepository.findByEmail("joao@test.com")).thenReturn(Optional.of(organizadorFixture));
+        when(authentication.getName()).thenReturn("joao@aluno.ifsp.edu.br");
+        when(userRepository.findByEmail("joao@aluno.ifsp.edu.br")).thenReturn(Optional.of(organizadorFixture));
         when(modalidadeRepository.findById(1L)).thenReturn(Optional.of(modalidadeFixture));
         when(eventoRepository.save(any(Evento.class))).thenReturn(eventoFixture);
 
@@ -114,8 +114,8 @@ class EventServiceImplTest {
     void criarEvento_comDataInvalida_lancaBusinessRuleException() {
         // Arrange
         when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("joao@test.com");
-        when(userRepository.findByEmail("joao@test.com")).thenReturn(Optional.of(organizadorFixture));
+        when(authentication.getName()).thenReturn("joao@aluno.ifsp.edu.br");
+        when(userRepository.findByEmail("joao@aluno.ifsp.edu.br")).thenReturn(Optional.of(organizadorFixture));
 
         EventRequestDTO requestDTO = new EventRequestDTO();
         requestDTO.setNome("Campeonato de Futebol");

@@ -70,7 +70,7 @@ class ComunidadeServiceImplTest {
         userFixture = new User();
         userFixture.setId(1L);
         userFixture.setNome("João Silva");
-        userFixture.setEmail("joao@test.com");
+        userFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: Comunidade
         comunidadeFixture = Comunidade.builder()

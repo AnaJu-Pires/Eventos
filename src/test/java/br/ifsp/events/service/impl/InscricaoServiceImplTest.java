@@ -53,6 +53,7 @@ class InscricaoServiceImplTest {
     private Evento eventoFixture;
     private Inscricao inscricaoFixture;
     private EventoModalidade eventoModalidadeFixture;
+    private Time timeFixture;
 
     @BeforeEach
     void setUp() {
@@ -63,7 +64,7 @@ class InscricaoServiceImplTest {
         gestorFixture = new User();
         gestorFixture.setId(1L);
         gestorFixture.setNome("João Gestor");
-        gestorFixture.setEmail("joao@test.com");
+        gestorFixture.setEmail("joao@aluno.ifsp.edu.br");
 
         // Fixture: Evento
         eventoFixture = new Evento();
@@ -84,17 +85,19 @@ class InscricaoServiceImplTest {
         eventoModalidadeFixture.setId(1L);
         eventoModalidadeFixture.setEvento(eventoFixture);
         eventoModalidadeFixture.setModalidade(modalidadeFixture);
-        eventoModalidadeFixture.setInscricoes(new HashSet<>());
 
-        // Fixture: User (Participante)
-        User participante = new User();
-        participante.setId(2L);
-        participante.setNome("João Participante");
+        //Fixture: Time (Necessário para a Inscrição)
+        timeFixture = new Time();
+        timeFixture.setId(1L);
+        timeFixture.setNome("Time do João");
+        // Você pode adicionar o participante ao time aqui se o modelo 'Time' permitir
+        // ex: timeFixture.setMembros(new HashSet<>(Arrays.asList(participante)));
+        // ex: timeFixture.setCapitao(participante);
 
         // Fixture: Inscricao
         inscricaoFixture = new Inscricao();
         inscricaoFixture.setId(1L);
-        inscricaoFixture.setUsuario(participante);
+        inscricaoFixture.setTime(timeFixture);
         inscricaoFixture.setEventoModalidade(eventoModalidadeFixture);
         inscricaoFixture.setStatusInscricao(StatusInscricao.PENDENTE);
     }
