@@ -53,6 +53,9 @@ public class Time {
     @JoinColumn(name = "modalidadeId", nullable = false, updatable = false)
     private Modalidade modalidade;
 
+    private int qtdVitorias = 0;
+    private int qtdPartidas = 0;
+
     @ManyToMany
     @JoinTable(
         name = "timeMembros",
@@ -64,4 +67,20 @@ public class Time {
     @OneToMany(mappedBy = "time", cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<Inscricao> inscricoes;
+
+    public double getWinRate() {
+        if (qtdPartidas == 0) {
+            return 0.0;
+        }
+        return (double) qtdVitorias / qtdPartidas;
+    }
+
+    public void incrementaVitoria() {
+        this.qtdVitorias++;
+        this.qtdPartidas++;
+    }
+
+    public void incrementaPartida() {
+        this.qtdPartidas++;
+    }
 }
