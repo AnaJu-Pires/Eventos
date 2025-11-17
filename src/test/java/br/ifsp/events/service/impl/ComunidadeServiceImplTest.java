@@ -28,6 +28,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+// ADICIONE ESTE IMPORT
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.*;
 
 /**
@@ -64,7 +66,9 @@ class ComunidadeServiceImplTest {
     void setUp() {
         // Setup SecurityContextHolder
         SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+        
+        // ADICIONE lenient() AQUI (esta é a linha 67)
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
 
         // Fixture: User
         userFixture = new User();

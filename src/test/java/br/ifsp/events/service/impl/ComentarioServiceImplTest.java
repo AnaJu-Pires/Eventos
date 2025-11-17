@@ -31,6 +31,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+// ADICIONE ESTE IMPORT
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.*;
 
 /**
@@ -68,7 +70,8 @@ class ComentarioServiceImplTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+        // ADICIONE lenient() AQUI
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
 
         // Fixture: User (Autor do comentário)
         autorFixture = new User();
