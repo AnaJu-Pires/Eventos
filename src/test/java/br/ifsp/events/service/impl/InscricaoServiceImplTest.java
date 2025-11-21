@@ -18,13 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 /**
@@ -58,7 +56,8 @@ class InscricaoServiceImplTest {
     @BeforeEach
     void setUp() {
         SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+        // Usamos lenient() aqui para evitar erros de stubbing desnecessário em testes que não usam autenticação
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
 
         // Fixture: User (Gestor do evento)
         gestorFixture = new User();
@@ -86,13 +85,17 @@ class InscricaoServiceImplTest {
         eventoModalidadeFixture.setEvento(eventoFixture);
         eventoModalidadeFixture.setModalidade(modalidadeFixture);
 
-        //Fixture: Time (Necessário para a Inscrição)
+        // Criar um capitão para o time (evita NullPointerException)
+        User capitao = new User();
+        capitao.setId(2L);
+        capitao.setNome("Maria Capitã");
+        capitao.setEmail("maria@aluno.ifsp.edu.br");
+
+        // Fixture: Time (Necessário para a Inscrição)
         timeFixture = new Time();
         timeFixture.setId(1L);
         timeFixture.setNome("Time do João");
-        // Você pode adicionar o participante ao time aqui se o modelo 'Time' permitir
-        // ex: timeFixture.setMembros(new HashSet<>(Arrays.asList(participante)));
-        // ex: timeFixture.setCapitao(participante);
+        timeFixture.setCapitao(capitao); 
 
         // Fixture: Inscricao
         inscricaoFixture = new Inscricao();
@@ -106,6 +109,7 @@ class InscricaoServiceImplTest {
     void listarInscricoesPendentes_comEventoValido_retornaLista() {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(gestorFixture);
+        // Aqui o eventoRepository É necessário, pois o método recebe o ID do evento
         when(eventoRepository.findById(1L)).thenReturn(Optional.of(eventoFixture));
         when(inscricaoRepository.findAllByEventoModalidade_Evento_IdAndStatusInscricao(1L, StatusInscricao.PENDENTE))
             .thenReturn(Arrays.asList(inscricaoFixture));
@@ -116,6 +120,8 @@ class InscricaoServiceImplTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
+        assertEquals("Time do João", result.get(0).getNomeTime());
+        
         verify(inscricaoRepository, times(1))
             .findAllByEventoModalidade_Evento_IdAndStatusInscricao(1L, StatusInscricao.PENDENTE);
     }
@@ -124,7 +130,7 @@ class InscricaoServiceImplTest {
     void listarInscricoesPendentes_usuarioNaoEhGestor_lancaBusinessRuleException() {
         // Arrange
         User outroUsuario = new User();
-        outroUsuario.setId(2L);
+        outroUsuario.setId(3L); // ID diferente do gestor
         outroUsuario.setNome("Outro Usuário");
 
         when(authentication.getPrincipal()).thenReturn(outroUsuario);
@@ -153,7 +159,7 @@ class InscricaoServiceImplTest {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(gestorFixture);
         when(inscricaoRepository.findById(1L)).thenReturn(Optional.of(inscricaoFixture));
-        when(eventoRepository.findById(1L)).thenReturn(Optional.of(eventoFixture));
+        // CORREÇÃO: Removido when(eventoRepository.findById...) pois é desnecessário
         when(inscricaoRepository.save(any(Inscricao.class))).thenReturn(inscricaoFixture);
 
         // Act
@@ -170,7 +176,7 @@ class InscricaoServiceImplTest {
         inscricaoFixture.setStatusInscricao(StatusInscricao.APROVADA);
         when(authentication.getPrincipal()).thenReturn(gestorFixture);
         when(inscricaoRepository.findById(1L)).thenReturn(Optional.of(inscricaoFixture));
-        when(eventoRepository.findById(1L)).thenReturn(Optional.of(eventoFixture));
+        // CORREÇÃO: Removido when(eventoRepository.findById...) pois é desnecessário
 
         // Act & Assert
         assertThrows(BusinessRuleException.class, () -> {
@@ -184,7 +190,7 @@ class InscricaoServiceImplTest {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(gestorFixture);
         when(inscricaoRepository.findById(1L)).thenReturn(Optional.of(inscricaoFixture));
-        when(eventoRepository.findById(1L)).thenReturn(Optional.of(eventoFixture));
+        // CORREÇÃO: Removido when(eventoRepository.findById...) pois é desnecessário
         when(inscricaoRepository.save(any(Inscricao.class))).thenReturn(inscricaoFixture);
 
         // Act
@@ -199,11 +205,11 @@ class InscricaoServiceImplTest {
     void rejeitarInscricao_usuarioNaoEhGestor_lancaBusinessRuleException() {
         // Arrange
         User outroUsuario = new User();
-        outroUsuario.setId(2L);
+        outroUsuario.setId(3L);
 
         when(authentication.getPrincipal()).thenReturn(outroUsuario);
         when(inscricaoRepository.findById(1L)).thenReturn(Optional.of(inscricaoFixture));
-        when(eventoRepository.findById(1L)).thenReturn(Optional.of(eventoFixture));
+        // CORREÇÃO: Removido when(eventoRepository.findById...) pois é desnecessário
 
         // Act & Assert
         assertThrows(BusinessRuleException.class, () -> {

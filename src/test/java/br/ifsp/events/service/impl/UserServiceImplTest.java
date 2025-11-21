@@ -17,23 +17,21 @@ import br.ifsp.events.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.mockito.ArgumentCaptor;
-import org.modelmapper.ModelMapper;
 
-import java.util.Optional;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -90,45 +88,52 @@ class UserServiceImplTest {
         registerDTOFixture.setNome("João Silva");
         registerDTOFixture.setEmail("joao@aluno.ifsp.edu.br");
         registerDTOFixture.setSenha("senha123");
+
+        // CORREÇÃO PRINCIPAL PARA O NPE:
+        // Configurar o ModelMapper para retornar um User instanciado quando converter de DTO
+        lenient().when(modelMapper.map(any(UserRegisterDTO.class), eq(User.class))).thenAnswer(invocation -> {
+            UserRegisterDTO dto = invocation.getArgument(0);
+            User user = new User();
+            user.setNome(dto.getNome());
+            user.setEmail(dto.getEmail());
+            // A senha e outros campos são definidos pela lógica do serviço
+            return user;
+        });
+
+        // Configurar o ModelMapper para retornar DTOs de resposta (evita NPE em outros testes)
+        lenient().when(modelMapper.map(any(User.class), eq(UserResponseDTO.class))).thenReturn(new UserResponseDTO());
     }
 
     @Test
     void registrarUsuario_comDadosValidos_sucesso() {
         // Arrange
-    // Use o DTO do setUp (com email "joao@aluno.ifsp.edu.br")
-    when(userRepository.existsByEmail(registerDTOFixture.getEmail())).thenReturn(false);
-    when(passwordEncoder.encode(registerDTOFixture.getSenha())).thenReturn("senha_hasheada");
+        when(userRepository.existsByEmail(registerDTOFixture.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(registerDTOFixture.getSenha())).thenReturn("senha_hasheada");
 
-    // Configure o mock 'save' para retornar o usuário que recebeu
-    // Isso é mais limpo para testes de criação
-    when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
-        User userSalvo = invocation.getArgument(0);
-        userSalvo.setId(1L); // Simula o ID sendo gerado pelo banco
-        return userSalvo;
-    });
+        // Configure o mock 'save' para retornar o usuário que recebeu
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User userSalvo = invocation.getArgument(0);
+            userSalvo.setId(1L); // Simula o ID sendo gerado pelo banco
+            return userSalvo;
+        });
 
-    // Crie um ArgumentCaptor para a classe User
-    ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
 
-    // Act
-    // Não precisamos mais do assertDoesNotThrow,
-    // pois a ausência de exceção já é o comportamento esperado.
-    userService.registerUser(registerDTOFixture);
+        // Act
+        userService.registerUser(registerDTOFixture);
 
-    // Assert
-    // Verifique se o 'save' foi chamado e capture o argumento
-    verify(userRepository, times(1)).save(userCaptor.capture());
-    verify(emailService, times(1)).sendConfirmationEmail(anyString(), anyString(), anyString());
+        // Assert
+        verify(userRepository, times(1)).save(userCaptor.capture());
+        verify(emailService, times(1)).sendConfirmationEmail(anyString(), anyString(), anyString());
 
-    // Capture o valor e faça asserções detalhadas (Princípio do "Right")
-    User userSalvo = userCaptor.getValue();
-    assertEquals("João Silva", userSalvo.getNome());
-    assertEquals("joao@aluno.ifsp.edu.br", userSalvo.getEmail());
-    assertEquals("senha_hasheada", userSalvo.getSenha());
-    assertEquals(PerfilUser.ALUNO, userSalvo.getPerfilUser()); // Verifica a lógica de `determinePerfilFromEmail`
-    assertEquals(StatusUser.INATIVO, userSalvo.getStatusUser()); // Garante que o usuário está inativo
-    assertNotNull(userSalvo.getTokenConfirmacao()); // Garante que um token foi gerado
-    assertNotNull(userSalvo.getDataExpiracaoTokenConfirmacao());
+        User userSalvo = userCaptor.getValue();
+        assertEquals("João Silva", userSalvo.getNome());
+        assertEquals("joao@aluno.ifsp.edu.br", userSalvo.getEmail());
+        assertEquals("senha_hasheada", userSalvo.getSenha());
+        assertEquals(PerfilUser.ALUNO, userSalvo.getPerfilUser());
+        assertEquals(StatusUser.INATIVO, userSalvo.getStatusUser());
+        assertNotNull(userSalvo.getTokenConfirmacao());
+        assertNotNull(userSalvo.getDataExpiracaoTokenConfirmacao());
     }
 
     @Test
@@ -136,7 +141,7 @@ class UserServiceImplTest {
         // Arrange
         UserRegisterDTO dtoEmailInvalido = new UserRegisterDTO();
         dtoEmailInvalido.setNome("Usuário Inválido");
-        dtoEmailInvalido.setEmail("usuario@dominioestranho.com"); // Email inválido
+        dtoEmailInvalido.setEmail("usuario@dominioestranho.com");
         dtoEmailInvalido.setSenha("senha123");
 
         when(userRepository.existsByEmail(dtoEmailInvalido.getEmail())).thenReturn(false);
@@ -146,10 +151,8 @@ class UserServiceImplTest {
             userService.registerUser(dtoEmailInvalido);
         });
         
-        // Assert (Mensagem de exceção)
         assertEquals("Domínio de email não reconhecido.", exception.getMessage());
 
-        // Garante que nada foi salvo ou enviado
         verify(userRepository, never()).save(any(User.class));
         verify(emailService, never()).sendConfirmationEmail(anyString(), anyString(), anyString());
     }
@@ -169,18 +172,13 @@ class UserServiceImplTest {
     @Test
     void confirmarUsuario_comTokenValido_ativaUsuario() {
         // Arrange
-        usuarioFixture.setStatusUser(StatusUser.INATIVO); // Garante o estado inicial
-        usuarioFixture.setDataExpiracaoTokenConfirmacao(LocalDateTime.now().plusHours(1)); // Garante que não está expirado
+        usuarioFixture.setStatusUser(StatusUser.INATIVO);
+        usuarioFixture.setDataExpiracaoTokenConfirmacao(LocalDateTime.now().plusHours(1));
 
         when(userRepository.findByTokenConfirmacao("token-test")).thenReturn(Optional.of(usuarioFixture));
         
-        // Use o ArgumentCaptor para verificar o que é salvo
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        when(userRepository.save(userCaptor.capture())).thenReturn(usuarioFixture); // Captura na chamada do save
-
-        // Mock do ModelMapper
-        when(modelMapper.map(any(User.class), eq(UserResponseDTO.class)))
-            .thenReturn(new UserResponseDTO()); // Retorne um DTO qualquer, só para evitar NPE
+        when(userRepository.save(userCaptor.capture())).thenReturn(usuarioFixture);
 
         // Act
         UserResponseDTO result = userService.confirmUser("token-test");
@@ -188,11 +186,10 @@ class UserServiceImplTest {
         // Assert
         assertNotNull(result);
 
-        // Verifique o estado do usuário que foi para o 'save'
         User userSalvo = userCaptor.getValue();
         assertEquals(StatusUser.ATIVO, userSalvo.getStatusUser());
-        assertNull(userSalvo.getTokenConfirmacao()); // Token deve ser limpo
-        assertNull(userSalvo.getDataExpiracaoTokenConfirmacao()); // Data de expiração deve ser limpa
+        assertNull(userSalvo.getTokenConfirmacao());
+        assertNull(userSalvo.getDataExpiracaoTokenConfirmacao());
         
         verify(userRepository, times(1)).save(any(User.class));
         verify(modelMapper, times(1)).map(any(User.class), eq(UserResponseDTO.class));
@@ -271,7 +268,6 @@ class UserServiceImplTest {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(usuarioFixture);
         
-        // Mock do ModelMapper
         UserResponseDTO dtoEsperado = new UserResponseDTO();
         dtoEsperado.setId(usuarioFixture.getId());
         dtoEsperado.setEmail(usuarioFixture.getEmail());
@@ -284,17 +280,16 @@ class UserServiceImplTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(usuarioFixture.getEmail(), result.getEmail()); // Verificação mais forte
+        assertEquals(usuarioFixture.getEmail(), result.getEmail());
         verify(modelMapper, times(1)).map(usuarioFixture, UserResponseDTO.class);
     }
 
     @Test
     void confirmarUsuario_comTokenExpirado_lancaBusinessRuleException() {
         // Arrange
-        // Configure a fixture com um token que expirou ontem
         usuarioFixture.setStatusUser(StatusUser.INATIVO);
         usuarioFixture.setTokenConfirmacao("token-expirado");
-        usuarioFixture.setDataExpiracaoTokenConfirmacao(LocalDateTime.now().minusDays(1)); // Expirou ontem
+        usuarioFixture.setDataExpiracaoTokenConfirmacao(LocalDateTime.now().minusDays(1));
 
         when(userRepository.findByTokenConfirmacao("token-expirado"))
             .thenReturn(Optional.of(usuarioFixture));
@@ -304,10 +299,8 @@ class UserServiceImplTest {
             userService.confirmUser("token-expirado");
         });
 
-        // Assert (Mensagem de exceção)
         assertEquals("Token de confirmação expirado. Por favor, registre-se novamente.", exception.getMessage());
         
-        // Garante que o usuário não foi salvo (status não mudou)
         verify(userRepository, never()).save(any(User.class));
     }
 }

@@ -27,13 +27,15 @@ class TimeResponseDTOTest {
         ModalidadeResponseDTO modalidade = new ModalidadeResponseDTO(1L, "Futebol", "Esporte");
         Set<UserResponseDTO> membros = new HashSet<>();
 
-        TimeResponseDTO dto = new TimeResponseDTO(1L, "Time A", capitao, modalidade, membros);
+        // CORREÇÃO: Adicionado o 6º argumento 'winRate' (0.0)
+        TimeResponseDTO dto = new TimeResponseDTO(1L, "Time A", capitao, modalidade, membros, 0.0);
 
         assertEquals(1L, dto.getId());
         assertEquals("Time A", dto.getNome());
         assertEquals(capitao, dto.getCapitao());
         assertEquals(modalidade, dto.getModalidade());
         assertEquals(membros, dto.getMembros());
+        assertEquals(0.0, dto.getWinRate()); // Adicionado assert para o novo campo
     }
 
     @Test

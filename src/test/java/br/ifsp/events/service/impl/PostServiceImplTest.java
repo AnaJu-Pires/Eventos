@@ -69,7 +69,9 @@ class PostServiceImplTest {
     void setUp() {
         // Setup SecurityContextHolder
         SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
+        
+        // CORREÇÃO: Adicionado lenient() para evitar erro em testes de listagem/busca
+        lenient().when(securityContext.getAuthentication()).thenReturn(authentication);
 
         // Fixture: User (Autor)
         autorFixture = new User();
