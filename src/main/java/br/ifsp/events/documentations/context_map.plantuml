@@ -1,0 +1,73 @@
+@startuml ContextMap_Events
+
+' Estilização
+skinparam componentStyle uml2
+skinparam component {
+  BackgroundColor<<IAM>> LightBlue
+  BackgroundColor<<Core>> LightGreen
+  BackgroundColor<<Social>> LightYellow
+  BackgroundColor<<Gamification>> Pink
+  BorderColor Black
+  ArrowColor Black
+}
+
+title Context Map - Sistema de Eventos Esportivos (DDD)
+
+' --- Definição dos Contextos ---
+
+component [IAM Context\n(Identity & Access)] as IAM <<IAM>>
+note right of IAM
+  Gestão de Usuários, Auth,
+  Perfis e Segurança (JWT)
+end note
+
+component [Core Context\n(Competitions)] as Core <<Core>>
+note top of Core
+  Gestão de Eventos, Times,
+  Partidas e Chaveamentos
+end note
+
+component [Social Context\n(Community)] as Social <<Social>>
+note bottom of Social
+  Posts, Comentários,
+  Votos e Comunidades
+end note
+
+component [Gamification Context\n(Rewards)] as Gamification <<Gamification>>
+note bottom of Gamification
+  Regras de Pontuação,
+  Níveis e Ranking
+end note
+
+package "Shared Kernel" {
+  [DTOs Comuns]
+  [Enums (Status, Perfil)]
+}
+
+' --- Relacionamentos ---
+
+' 1. IAM fornece identidade (Upstream)
+IAM -down-> Core : Conformist\n[OHS, PL]
+IAM -down-> Social : Conformist\n[OHS, PL]
+IAM -down-> Gamification : Conformist\n[OHS, PL]
+
+' 2. Social depende da Gamificação (Customer/Supplier)
+' A seta pontilhada indica fluxo de dependência
+Social .right.> Gamification : Customer / Supplier\n(Acoplamento Forte)
+
+' 3. Shared Kernel
+[DTOs Comuns] <.. IAM : use
+[DTOs Comuns] <.. Core : use
+[DTOs Comuns] <.. Social : use
+[DTOs Comuns] <.. Gamification : use
+
+' --- Legenda de Padrões ---
+legend right
+  | Padrão | Significado |
+  | OHS | Open Host Service (API Pública) |
+  | PL | Published Language (Formato Padrão) |
+  | Conformist | Consumidor se adapta ao Fornecedor |
+  | C/S | Cliente define requisitos, Fornecedor atende |
+endlegend
+
+@enduml
