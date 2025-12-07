@@ -1,0 +1,115 @@
+package br.ifsp.events.repository.impl;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import br.ifsp.events.model.StatusUser;
+import br.ifsp.events.model.User;
+import br.ifsp.events.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+
+@Repository
+public class UserRepositoryImpl implements UserRepository {
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    @Transactional
+    public User save(User user) {
+        if (user.getId() == null) {
+            entityManager.persist(user);
+            return user;
+        } else {
+            return entityManager.merge(user);
+        }
+    }
+
+    @Override
+    public List<User> findAll() {
+        String jpql = "SELECT u FROM User u";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        return query.getResultList();
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        String jpql = "SELECT COUNT(u) > 0 FROM User u WHERE u.email = :email";
+        TypedQuery<Boolean> query = entityManager.createQuery(jpql, Boolean.class);
+        query.setParameter("email", email);
+        return query.getSingleResult();
+    }
+
+    @Override
+    public Optional<User> findByTokenConfirmacao(String token) {
+        String jpql = "SELECT u FROM User u WHERE u.tokenConfirmacao = :token";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("token", token);
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<User> findAllByStatusUserAndDataExpiracaoTokenConfirmacaoBefore(StatusUser status, LocalDateTime now) {
+        String jpql = "SELECT u FROM User u WHERE u.statusUser = :status AND u.dataExpiracaoTokenConfirmacao < :now";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("status", status);
+        query.setParameter("now", now);
+        return query.getResultList();
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long id) {
+        User user = entityManager.find(User.class, id);
+        if (user != null) {
+            entityManager.remove(user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteAll(List<User> users) {
+        for (User user : users) {
+            if (entityManager.contains(user)) {
+                entityManager.remove(user);
+            } else {
+                entityManager.remove(entityManager.merge(user));
+            }
+        }
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        String jpql = "SELECT u FROM User u WHERE u.email = :email";
+        TypedQuery<User> query = entityManager.createQuery(jpql, User.class);
+        query.setParameter("email", email);
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(entityManager.find(User.class, id));
+    }
+
+    @Override
+    public long count() {
+        String jpql = "SELECT COUNT(u) FROM User u";
+        return entityManager.createQuery(jpql, Long.class).getSingleResult();
+    }
+
+}

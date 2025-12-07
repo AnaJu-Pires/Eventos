@@ -1,0 +1,70 @@
+@startuml ContextDiagram
+!theme plain
+hide stereotype
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 80
+skinparam componentStyle rectangle
+
+title Mapa de Contextos (Context Map) - Sistema de Competições IFSP
+
+skinparam rectangle {
+    RoundCorner 15
+    Shadowing false
+    BorderColor Black
+}
+
+skinparam note {
+    BackgroundColor #FEFECE
+    BorderColor #D7D787
+}
+
+
+package "Monólito (Events API)" {
+    component "Autenticação / IAM\n(Subdomínio Genérico)" as IAM #LightGrey
+    
+    component "Gestão de Eventos\n(Domínio Core)" as Core #LightBlue
+    
+    component "Rede Social\n(Subdomínio Genérico)" as Social #LightYellow
+}
+
+package "Microsserviço Extraído" {
+    component "Gamificação\n(Subdomínio de Suporte)" as Game #LightGreen
+}
+
+IAM "U" .down.> "D" Core : [Conformista]\nToken JWT
+IAM "U" .down.> "D" Social : [Conformista]
+IAM "U" .down.> "D" Game : [Conformista]
+
+Core "U" -right-> "D" Social : [Customer/Supplier]\nEventos para Posts
+Core "U" -down-> "D" Game : [Customer/Supplier]\nGatilhos de Pontuação
+
+Social "Parceiro" <.left.> "Parceiro" Game : [Partnership]\nInteração = Pontos
+
+
+note right of Core
+  **Responsabilidades (Core):**
+  - Cadastro de eventos e modalidades
+  - Gerenciamento de partidas e times
+  - Inscrições e chaveamentos
+  --
+  //Arquitetura: MVC (Legado)//
+end note
+
+note bottom of Game
+  **Responsabilidades (Gamificação):**
+  - Cálculo de Score e XP
+  - Regras de Níveis (Bronze/Prata)
+  - Ranking de usuários
+  --
+  //Arquitetura: Clean Architecture//
+end note
+
+note right of Social
+  **Responsabilidades (Social):**
+  - Feed de notícias e Posts
+  - Comunidades e Comentários
+  - Interação entre atletas
+end note
+
+@enduml
